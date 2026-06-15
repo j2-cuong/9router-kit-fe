@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { LangToggle } from './LangToggle';
+import AuthPanel from './AuthPanel';
 import { useI18n } from '../lib/i18n';
 import { api } from '../lib/api';
 
@@ -33,6 +34,7 @@ const featureKeys = ['endpoint', 'premium', 'packages', 'telegram'] as const;
 export function MarketingNav() {
   const { t } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 16);
@@ -42,9 +44,10 @@ export function MarketingNav() {
   }, []);
 
   return (
-    <nav className={isScrolled ? 'top-nav top-nav-scrolled' : 'top-nav'}>
-      <Link className="nav-logo" href="/">9router</Link>
-      <div className="nav-actions">
+    <>
+      <nav className={isScrolled ? 'top-nav top-nav-scrolled' : 'top-nav'}>
+        <Link className="nav-logo" href="/">AzGate</Link>
+        <div className="nav-actions">
         <Link className="nav-link" href="/pricing">{t('nav.pricing')}</Link>
         <Link className="nav-link" href="/bulk">{t('nav.bulk')}</Link>
         <Link className="nav-link" href="/referral">{t('nav.referral')}</Link>
@@ -52,11 +55,13 @@ export function MarketingNav() {
         <Link className="nav-link" href="/terms">{t('nav.terms')}</Link>
         <Link className="nav-link" href="/policy">{t('nav.policy')}</Link>
         <LangToggle />
-        <Link className="btn btn-sm" href="/login">
+        <button type="button" className="btn btn-sm" onClick={() => setIsAuthOpen(true)}>
           <LogIn size={16} /> {t('nav.login')}
-        </Link>
-      </div>
-    </nav>
+        </button>
+        </div>
+      </nav>
+      {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
+    </>
   );
 }
 
@@ -87,7 +92,7 @@ export function HomeMarketingPage() {
             <h1 className="hero-title"><span className="glow">{t('hero.title')}</span></h1>
             <p className="hero-subtitle">{t('hero.subtitle')}</p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" href="/login">{t('hero.cta')} <ArrowRight size={18} /></Link>
+              <AuthCtaButton iconSize={18} />
               <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
             </div>
           </div>
@@ -275,7 +280,7 @@ export function BotPage() {
             <h1>{t('botQr.title')}</h1>
             <p className="muted">{t('botQr.text')}</p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" href="/login">{t('hero.cta')} <ArrowRight size={16} /></Link>
+              <AuthCtaButton iconSize={16} />
               <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
             </div>
           </article>
@@ -359,6 +364,21 @@ function LegalPage({ badge, title, items }: { badge: string; title: string; item
         </div>
       </section>
     </RouteShell>
+  );
+}
+
+
+function AuthCtaButton({ iconSize }: { iconSize: number }) {
+  const { t } = useI18n();
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" className="btn btn-primary" onClick={() => setIsAuthOpen(true)}>
+        {t('hero.cta')} <ArrowRight size={iconSize} />
+      </button>
+      {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
+    </>
   );
 }
 
