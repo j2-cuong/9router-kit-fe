@@ -1437,7 +1437,19 @@ export function SmokeField({
       if (disabled || !followMouse) return true;
       if (!ignoredSelector) return false;
       const target = event.target;
-      return target instanceof Element && Boolean(target.closest(ignoredSelector));
+      if (!(target instanceof Element)) return false;
+
+      return ignoredSelector
+        .split(',')
+        .map(selector => selector.trim())
+        .filter(Boolean)
+        .some(selector => {
+          try {
+            return Boolean(target.closest(selector));
+          } catch {
+            return false;
+          }
+        });
     }
 
     window.addEventListener('mousedown', (e) => {
