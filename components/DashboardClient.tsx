@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError, api } from '../lib/api';
-import { Bell, ChevronDown, Clock3, Database, Fingerprint, Gift, KeyRound, ListChecks, LogOut, MonitorSmartphone, RefreshCcw, Settings, ShieldCheck, SquareActivity, Trophy } from 'lucide-react';
+import { Bell, ChevronDown, Clock3, Database, Fingerprint, Gift, KeyRound, ListChecks, LogOut, MonitorSmartphone, RefreshCcw, Settings, ShieldCheck, SquareActivity, Timer, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { LangToggle } from './LangToggle';
 import { useI18n } from '../lib/i18n';
 import { getClientDeviceInfo, type ClientDeviceInfo } from '../lib/device';
+import { CheckoutModal } from './CheckoutModal';
 
 type LoginResult = {
   access_token: string;
@@ -246,8 +247,21 @@ export function DashboardClient() {
   }, [authMode]);
 
   const expiresLabel = useMemo(() => formatCountdown(session.api_key.expires_at, now), [session.api_key.expires_at, now]);
+  const resetLabel = useMemo(() => {
+    if (session.package.package_type !== 'week') return null;
+    if (!session.api_key.reset_at) return null;
+    const resetTime = new Date(session.api_key.reset_at).getTime();
+    if (!resetTime || resetTime < 86400000) return null;
+    if (resetTime <= Date.now()) return null;
+    return formatCountdown(session.api_key.reset_at, now);
+  }, [session.package.package_type, session.api_key.reset_at, now]);
 
-  const cards = [
+  const isWeekly = session.package.package_type === 'week';
+  const tokenLimit = session.api_key.token_limit;
+  const tokenUsed = session.api_key.token_used;
+  const tokenPercent = tokenLimit > 0 ? Math.min(100, Math.round((tokenUsed / tokenLimit) * 100)) : 0;
+
+  const cards = isWeekly ? [] : [
     { label: 'Requests', value: session.usage.request_count, icon: ListChecks },
     { label: 'Input tokens', value: session.usage.input_tokens, icon: Database },
     { label: 'Output tokens', value: session.usage.output_tokens, icon: SquareActivity },
@@ -287,6 +301,7 @@ export function DashboardClient() {
       const data = await api<{ profile: AccountProfile }>('/account/profile', { method: 'PUT', headers: { Authorization: 'Bearer ' + token }, body: JSON.stringify(profile) });
       setProfile(data.profile);
     }}
+    onRefreshDashboard={() => { const token = localStorage.getItem('9router_account_token') || ''; loadAccountDashboard(token); }}
   />;
 
   return <main className="shell-grid api-dashboard-shell">
@@ -304,13 +319,28 @@ export function DashboardClient() {
 
       {error && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(255,100,100,.3)', color: '#ffd9df' }}>{error}</div>}
 
-      <div className="section-grid" style={{ marginBottom: 20 }}>
+      {!isWeekly && <div className="section-grid" style={{ marginBottom: 20 }}>
         {cards.map(card => <article key={card.label} className="panel metric" style={{ gridColumn: 'span 3' }}>
           <card.icon color="var(--cyan)" size={22} />
           <div className="metric-value" style={{ fontSize: card.label === 'Time left' ? '1.6rem' : '2rem' }}>{String(card.value)}</div>
           <div className="metric-label">{card.label}</div>
         </article>)}
-      </div>
+      </div>}
+
+      {isWeekly && <article className="panel metric" style={{ marginBottom: 20, padding: '18px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--cyan)' }}>Token usage</span>
+          <span style={{ fontSize: '1.3rem', fontWeight: 700, color: tokenPercent > 90 ? '#ef4444' : tokenPercent > 70 ? '#f59e0b' : 'var(--cyan)' }}>{tokenPercent}%</span>
+        </div>
+        <div style={{ width: '100%', height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{ width: `${tokenPercent}%`, height: '100%', borderRadius: 5, background: tokenPercent > 90 ? '#ef4444' : tokenPercent > 70 ? '#f59e0b' : 'var(--cyan)', transition: 'width 0.3s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: 8 }}>
+          <span>Remaining: <strong style={{ color: 'var(--text-main)' }}>{session.api_key.token_remaining.toLocaleString('vi-VN')} / {tokenLimit.toLocaleString('vi-VN')}</strong></span>
+          {resetLabel && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Timer size={13} /> Next reset: <strong style={{ color: 'var(--cyan)' }}>{resetLabel}</strong></span>}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock3 size={13} /> Expires: <strong style={{ color: 'var(--text-main)' }}>{expiresLabel}</strong></span>
+        </div>
+      </article>}
 
       <ApiKeyRequestCard session={session} timeLeft={expiresLabel} />
     </section>
@@ -397,7 +427,7 @@ function shortenDeviceID(value: string) {
   return `${value.slice(0, 8)}...${value.slice(-6)}`;
 }
 
-function AccountDashboard2({ session, packages, leaderboard, accountKeys, promotions, referrals, referralSummary, redemptions, profile, setProfile, selectedPackage, setSelectedPackage, createdKey, error, onCreate, onDelete, onSaveProfile }: { session: AccountSession; packages: PackagePlan[]; leaderboard: LeaderboardRow[]; accountKeys: AccountAPIKey[]; promotions: PromoRecord[]; referrals: ReferralRecord[]; referralSummary: ReferralSummary; redemptions: RewardRedemptionRecord[]; profile: AccountProfile; setProfile: (profile: AccountProfile) => void; selectedPackage: string; setSelectedPackage: (v: string) => void; createdKey: any; error: string; onCreate: () => Promise<void>; onDelete: (id: string) => Promise<void>; onSaveProfile: () => Promise<void> }) {
+function AccountDashboard2({ session, packages, leaderboard, accountKeys, promotions, referrals, referralSummary, redemptions, profile, setProfile, selectedPackage, setSelectedPackage, createdKey, error, onCreate, onDelete, onSaveProfile, onRefreshDashboard }: { session: AccountSession; packages: PackagePlan[]; leaderboard: LeaderboardRow[]; accountKeys: AccountAPIKey[]; promotions: PromoRecord[]; referrals: ReferralRecord[]; referralSummary: ReferralSummary; redemptions: RewardRedemptionRecord[]; profile: AccountProfile; setProfile: (profile: AccountProfile) => void; selectedPackage: string; setSelectedPackage: (v: string) => void; createdKey: any; error: string; onCreate: () => Promise<void>; onDelete: (id: string) => Promise<void>; onSaveProfile: () => Promise<void>; onRefreshDashboard: () => void }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -406,6 +436,10 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
   const [keyQuery, setKeyQuery] = useState('');
   const [keyPage, setKeyPage] = useState(1);
   const [now, setNow] = useState(() => Date.now());
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutPackageId, setCheckoutPackageId] = useState<string | undefined>();
+  const [checkoutApiKeyId, setCheckoutApiKeyId] = useState<string | undefined>();
+  const [checkoutTitle, setCheckoutTitle] = useState<string>('');
   const keyPageSize = 10;
   const filteredAccountKeys = useMemo(() => {
     const needle = keyQuery.trim().toLowerCase();
@@ -467,7 +501,7 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
           <select className="input" value={selectedPackage} onChange={e => setSelectedPackage(e.target.value)}>
             {packages.map(p => <option key={p.id} value={p.id}>{formatPackageOption(p)}</option>)}
           </select>
-          <button className="btn btn-primary" style={{ marginTop: 14 }} disabled={busy || !selectedPackage} onClick={async () => { setBusy(true); try { await onCreate(); } finally { setBusy(false); } }}>{busy ? t('dashboard.sending') : t('dashboard.requestApproval')}</button>
+          <button className="btn btn-primary" style={{ marginTop: 14 }} disabled={busy || !selectedPackage} onClick={() => { setCheckoutPackageId(selectedPackage); setCheckoutApiKeyId(undefined); setCheckoutTitle('Mua mới API key'); setCheckoutOpen(true); }}>{t('dashboard.requestApproval')}</button>
         </article>
         <article className="panel metric" style={{ gridColumn: 'span 6' }}>
           <h2 style={{ marginTop: 0 }}>{t('dashboard.promotion')}</h2>
@@ -479,12 +513,20 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
       </div>
       {tab === 'overview' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.summary')}</strong></div><div style={{ padding: 20, overflowX: 'auto' }}><table className="glassy-table dashboard-table"><tbody><Row label={t('dashboard.fields.username')} value={session.account.username} /><Row label={t('dashboard.fields.email')} value={profile.contact_email || session.account.email || '-'} /><Row label={t('dashboard.fields.telegram')} value={profile.telegram_username || profile.telegram_user_id || '-'} /><Row label={t('dashboard.fields.referralCode')} value={session.account.referral_code} /><Row label={t('dashboard.fields.keysOwned')} value={String(accountKeys.length)} /><Row label={t('dashboard.fields.promotionsReceived')} value={String(promotions.length)} /><Row label={t('dashboard.fields.referralRewards')} value={`${formatVND(referralSummary.available_vnd)} VND`} /></tbody></table></div></article>}
 
-      {tab === 'keys' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.keysTitle')}</strong></div><div style={{ padding: 20, display: 'grid', gap: 14, overflowX: 'auto' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><input className="input" style={{ maxWidth: 360 }} value={keyQuery} onChange={e => setKeyQuery(e.target.value)} placeholder={t('dashboard.searchKeys')} /><span className="muted">{t('dashboard.showing')}: {visibleAccountKeys.length}/{filteredAccountKeys.length}</span></div><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.status')}</th><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.price')}</th><th>{t('dashboard.table.used')}</th><th>{t('dashboard.table.remain')}</th><th>{t('dashboard.table.timeLeft')}</th><th>Reset</th><th>{t('dashboard.copy')}</th><th>{t('dashboard.delete')}</th><th>Gia hạn</th></tr></thead><tbody>{visibleAccountKeys.map(k => <tr key={k.id}><td>{k.key_prefix}</td><td>{statusLabel(k.status, t)}</td><td>{k.package_name}</td><td>{formatVND(k.package_price)} VND</td><td>{k.token_used.toLocaleString('vi-VN')}</td><td>{formatKeyTokenRemaining(k, t)}</td><td>{formatCountdown(k.expires_at, now)}</td><td>{k.package_type === 'week' && k.reset_at ? formatCountdown(k.reset_at, now) : '-'}</td><td><button type="button" className="btn btn-sm" onClick={() => copyText(k.api_key || k.key_prefix)}>{t('dashboard.copy')}</button></td><td>{k.status !== 'active' ? <button type="button" className="btn btn-sm" onClick={() => { if (window.confirm(t('dashboard.confirmDelete'))) void onDelete(k.id); }}>{t('dashboard.delete')}</button> : '-'}</td><td>{(() => { const dt = new Date(k.expires_at).getTime(); if (isNaN(dt) || dt > Date.now()) return '-'; return <a href={'https://t.me/API_Agent_Shop_8866_bot?start=renew_' + k.id} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{textDecoration:'none'}}>Gia hạn</a>; })()}</td></tr>)}</tbody></table>{filteredAccountKeys.length > keyPageSize && <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}><span className="muted">{keyCurrentPage}/{keyPageCount}</span><div style={{ display: 'flex', gap: 8 }}><button type="button" className="btn btn-sm" disabled={keyCurrentPage <= 1} onClick={() => setKeyPage(p => Math.max(1, p - 1))}>{t('dashboard.previous')}</button><button type="button" className="btn btn-sm" disabled={keyCurrentPage >= keyPageCount} onClick={() => setKeyPage(p => Math.min(keyPageCount, p + 1))}>{t('dashboard.next')}</button></div></div>}</div></article>}      {tab === 'promos' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.promosTitle')}</strong></div><div style={{ padding: 20, display: 'grid', gap: 20, overflowX: 'auto' }}><section><h3>{t('dashboard.promoKeys')}</h3><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.milestone')}</th><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{promotions.map(p => <tr key={`${p.milestone}-${p.created_at}`}><td>{formatVND(p.milestone * 500000)} VND</td><td>{p.package_name}</td><td>{formatVND(p.value_vnd)} VND</td><td>{p.key_prefix || '-'}</td><td>{formatDate(p.created_at)}</td></tr>)}</tbody></table></section><section><h3>{t('dashboard.referralRewards')}</h3><div className="section-grid" style={{ marginBottom: 14 }}><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralEarned')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.earned_vnd)} VND</div></article><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralRedeemed')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.redeemed_vnd)} VND</div></article><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralAvailable')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.available_vnd)} VND</div></article></div><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.user')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.note')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{referrals.map(r => <tr key={`${r.created_at}-${r.referred_username}`}><td>{r.referred_username || '-'}</td><td>{formatVND(r.value_vnd)} VND</td><td>{r.note}</td><td>{formatDate(r.created_at)}</td></tr>)}</tbody></table></section><section><h3>{t('dashboard.rewardRedemptions')}</h3><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.status')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{redemptions.map(r => <tr key={`${r.created_at}-${r.key_prefix}`}><td>{r.package_name || '-'}</td><td>{formatVND(r.amount_vnd)} VND</td><td>{r.key_prefix || '-'}</td><td>{r.status}</td><td>{formatDate(r.created_at)}</td></tr>)}</tbody></table></section></div></article>}
+      {tab === 'keys' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.keysTitle')}</strong></div><div style={{ padding: 20, display: 'grid', gap: 14, overflowX: 'auto' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><input className="input" style={{ maxWidth: 360 }} value={keyQuery} onChange={e => setKeyQuery(e.target.value)} placeholder={t('dashboard.searchKeys')} /><span className="muted">{t('dashboard.showing')}: {visibleAccountKeys.length}/{filteredAccountKeys.length}</span></div><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.status')}</th><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.price')}</th><th>{t('dashboard.table.used')}</th><th>{t('dashboard.table.remain')}</th><th>{t('dashboard.table.timeLeft')}</th><th>Reset</th><th>{t('dashboard.copy')}</th><th>{t('dashboard.delete')}</th><th>Gia hạn</th></tr></thead><tbody>{visibleAccountKeys.map(k => <tr key={k.id}><td>{k.key_prefix}</td><td>{statusLabel(k.status, t)}</td><td>{k.package_name}</td><td>{formatVND(k.package_price)} VND</td><td>{k.token_used.toLocaleString('vi-VN')}</td><td>{formatKeyTokenRemaining(k, t)}</td><td>{formatCountdown(k.expires_at, now)}</td><td>{k.package_type === 'week' && k.reset_at ? formatCountdown(k.reset_at, now) : '-'}</td><td><button type="button" className="btn btn-sm" onClick={() => copyText(k.api_key || k.key_prefix)}>{t('dashboard.copy')}</button></td><td>{k.status !== 'active' ? <button type="button" className="btn btn-sm" onClick={() => { if (window.confirm(t('dashboard.confirmDelete'))) void onDelete(k.id); }}>{t('dashboard.delete')}</button> : '-'}</td><td>{(() => { const dt = new Date(k.expires_at).getTime(); if (isNaN(dt) || dt > Date.now()) return '-'; return <button type="button" className="btn btn-sm" onClick={() => { setCheckoutApiKeyId(k.id); setCheckoutPackageId(undefined); setCheckoutTitle('Gia han API key'); setCheckoutOpen(true); }}>Gia han</button>; })()}</td></tr>)}</tbody></table>{filteredAccountKeys.length > keyPageSize && <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}><span className="muted">{keyCurrentPage}/{keyPageCount}</span><div style={{ display: 'flex', gap: 8 }}><button type="button" className="btn btn-sm" disabled={keyCurrentPage <= 1} onClick={() => setKeyPage(p => Math.max(1, p - 1))}>{t('dashboard.previous')}</button><button type="button" className="btn btn-sm" disabled={keyCurrentPage >= keyPageCount} onClick={() => setKeyPage(p => Math.min(keyPageCount, p + 1))}>{t('dashboard.next')}</button></div></div>}</div></article>}      {tab === 'promos' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.promosTitle')}</strong></div><div style={{ padding: 20, display: 'grid', gap: 20, overflowX: 'auto' }}><section><h3>{t('dashboard.promoKeys')}</h3><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.milestone')}</th><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{promotions.map(p => <tr key={`${p.milestone}-${p.created_at}`}><td>{formatVND(p.milestone * 500000)} VND</td><td>{p.package_name}</td><td>{formatVND(p.value_vnd)} VND</td><td>{p.key_prefix || '-'}</td><td>{formatDate(p.created_at)}</td></tr>)}</tbody></table></section><section><h3>{t('dashboard.referralRewards')}</h3><div className="section-grid" style={{ marginBottom: 14 }}><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralEarned')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.earned_vnd)} VND</div></article><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralRedeemed')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.redeemed_vnd)} VND</div></article><article className="panel metric" style={{ gridColumn: 'span 4' }}><div className="metric-label">{t('dashboard.referralAvailable')}</div><div className="metric-value" style={{ fontSize: '1.5rem' }}>{formatVND(referralSummary.available_vnd)} VND</div></article></div><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.user')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.note')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{referrals.map(r => <tr key={`${r.created_at}-${r.referred_username}`}><td>{r.referred_username || '-'}</td><td>{formatVND(r.value_vnd)} VND</td><td>{r.note}</td><td>{formatDate(r.created_at)}</td></tr>)}</tbody></table></section><section><h3>{t('dashboard.rewardRedemptions')}</h3><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.package')}</th><th>{t('dashboard.table.value')}</th><th>{t('dashboard.table.key')}</th><th>{t('dashboard.table.status')}</th><th>{t('dashboard.table.date')}</th></tr></thead><tbody>{redemptions.map(r => <tr key={`${r.created_at}-${r.key_prefix}`}><td>{r.package_name || '-'}</td><td>{formatVND(r.amount_vnd)} VND</td><td>{r.key_prefix || '-'}</td><td>{r.status}</td><td>{formatDate(r.created_at)}</td></tr>)}</tbody></table></section></div></article>}
 
       {tab === 'settings' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.settings')}</strong></div><div style={{ padding: 20, display: 'grid', gap: 14 }}><div className="field"><label className="label">{t('dashboard.fields.email')}</label><input className="input" value={profile.contact_email || ''} onChange={e => updateProfile({ contact_email: e.target.value })} /></div><div className="field"><label className="label">{t('dashboard.fields.telegramUserId')}</label><div style={{ display: 'flex', gap: 8 }}><input className="input" style={{ flex: 1 }} value={profile.telegram_user_id || ''} onChange={e => updateProfile({ telegram_user_id: e.target.value })} placeholder={t('dashboard.numericId')} /><a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ whiteSpace: 'nowrap', fontSize: 13 }}>Get ID</a></div></div><div className="field"><label className="label">{t('dashboard.fields.telegramUsername')}</label><input className="input" value={profile.telegram_username || ''} onChange={e => updateProfile({ telegram_username: e.target.value })} /></div><div className="field"><label className="label">{t('dashboard.fields.bankName')}</label><input className="input" value={profile.bank_name || ''} onChange={e => updateProfile({ bank_name: e.target.value })} /></div><div className="field"><label className="label">{t('dashboard.fields.bankAccountName')}</label><input className="input" value={profile.bank_account_name || ''} onChange={e => updateProfile({ bank_account_name: e.target.value })} /></div><div className="field"><label className="label">{t('dashboard.fields.bankAccountNumber')}</label><input className="input" value={profile.bank_account_number || ''} onChange={e => updateProfile({ bank_account_number: e.target.value })} /></div><div className="field"><label className="label">{t('dashboard.table.note')}</label><input className="input" value={profile.note || ''} onChange={e => updateProfile({ note: e.target.value })} /></div><button type="button" className="btn btn-primary" disabled={savingProfile} onClick={async () => { setSavingProfile(true); try { await onSaveProfile(); } finally { setSavingProfile(false); } }}>{savingProfile ? t('dashboard.saving') : t('dashboard.saveSettings')}</button></div></article>}
       {tab === 'leaders' && <article className="panel panel-strong"><div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.leaderboard')}</strong></div><div style={{ padding: 20, overflowX: 'auto' }}><table className="glassy-table dashboard-table"><thead><tr><th>{t('dashboard.table.user')}</th><th>{t('dashboard.table.totalSpent')}</th><th>{t('dashboard.table.purchased')}</th></tr></thead><tbody>{leaderboard.map(row => <tr key={row.username}><td>{row.username}</td><td>{formatVND(row.total_spent_vnd)} VND</td><td>{row.purchased_keys}</td></tr>)}</tbody></table></div></article>}
       </div>
     </section>
+    <CheckoutModal
+      open={checkoutOpen}
+      onClose={() => setCheckoutOpen(false)}
+      onSuccess={() => { setCheckoutOpen(false); onRefreshDashboard(); }}
+      packageId={checkoutPackageId}
+      apiKeyId={checkoutApiKeyId}
+      title={checkoutTitle}
+    />
   </main>;
 }
 function Row({ label, value }: { label: string; value: string }) {
@@ -493,9 +535,11 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function formatDuration(totalSeconds: number) {
   const value = Math.max(0, Math.floor(totalSeconds));
-  const hours = Math.floor(value / 3600);
+  const days = Math.floor(value / 86400);
+  const hours = Math.floor((value % 86400) / 3600);
   const minutes = Math.floor((value % 3600) / 60);
   const seconds = value % 60;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
   if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
