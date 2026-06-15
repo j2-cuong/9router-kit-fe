@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, startTransition } from 'react';
 import { dictionaries, type Dict } from './dictionaries';
 
 type Lang = 'vi' | 'en';
@@ -35,8 +35,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLang = useCallback((l: Lang) => {
-    setLangState(l);
-    setDict(dictionaries[l]);
+    startTransition(() => {
+      setLangState(l);
+      setDict(dictionaries[l]);
+    });
     localStorage.setItem('lang', l);
     document.documentElement.lang = l;
   }, []);

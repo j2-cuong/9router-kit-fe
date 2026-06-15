@@ -13,7 +13,7 @@ const vi = {
     badge: 'Cổng API cho các công cụ lập trình AI',
     eyebrow: 'Một key. Một endpoint. Dễ quản lý.',
     title: 'Dùng nhiều model AI trong IDE qua một API duy nhất',
-    subtitle: '9router giúp bạn dùng các model như Claude, GPT và Gemini trong IDE mà không phải tự cấu hình nhiều nhà cung cấp. Chọn gói, nhận API key, gắn vào công cụ đang dùng và theo dõi mức sử dụng trong dashboard.',
+    subtitle: 'AzGate giúp bạn dùng các model như Claude, GPT và Gemini trong IDE mà không phải tự cấu hình nhiều nhà cung cấp. Chọn gói, nhận API key, gắn vào công cụ đang dùng và theo dõi mức sử dụng trong dashboard.',
     cta: 'Đăng nhập dashboard',
     ctaPricing: 'Xem gói dịch vụ',
   },
@@ -67,7 +67,7 @@ const vi = {
     badge: 'Telegram bot',
     title: 'Mua gói và nhận API key qua Telegram',
     text: 'Mở bot Telegram để xem các gói đang bán, tạo yêu cầu mua key và nhận hướng dẫn cấu hình. Sau khi yêu cầu được duyệt, bạn có thể dùng key trong IDE hoặc đăng nhập dashboard để theo dõi usage.',
-    imageAlt: 'Mã QR Telegram bot của 9router',
+    imageAlt: 'Mã QR Telegram bot của AzGate',
   },
   bulk: {
     badge: 'Ưu đãi mua nhiều',
@@ -92,17 +92,17 @@ const vi = {
     badge: 'Điều khoản',
     title: 'Điều khoản sử dụng',
     items: {
-      service: '9router cung cấp cổng API để dùng model AI trong các IDE và agent được hỗ trợ. Người dùng có trách nhiệm bảo mật API key và sử dụng dịch vụ đúng mục đích hợp pháp.',
+      service: 'AzGate cung cấp cổng API để dùng model AI trong các IDE và agent được hỗ trợ. Người dùng có trách nhiệm bảo mật API key và sử dụng dịch vụ đúng mục đích hợp pháp.',
       payment: 'Một giao dịch chỉ được tính là hoàn tất khi yêu cầu mua key đã được xác nhận và API key chuyển sang trạng thái active.',
       fairUse: 'Gói theo giờ có thể dùng nhiều lượt gọi trong thời gian hiệu lực, nhưng vẫn chịu giới hạn về tốc độ, số kết nối đồng thời và cơ chế chống chia sẻ key trái phép.',
-      rewards: 'Điểm thưởng, key khuyến mãi và quyền lợi mua nhiều được tính theo dữ liệu hệ thống tại thời điểm duyệt. 9router có thể từ chối quyền lợi nếu phát hiện lạm dụng hoặc gian lận.',
+      rewards: 'Điểm thưởng, key khuyến mãi và quyền lợi mua nhiều được tính theo dữ liệu hệ thống tại thời điểm duyệt. AzGate có thể từ chối quyền lợi nếu phát hiện lạm dụng hoặc gian lận.',
     },
   },
   policy: {
     badge: 'Chính sách',
     title: 'Chính sách vận hành',
     items: {
-      data: '9router lưu thông tin tài khoản, Telegram, giao dịch, API key và usage để vận hành dashboard, bot thanh toán và cơ chế đối soát quyền lợi.',
+      data: 'AzGate lưu thông tin tài khoản, Telegram, giao dịch, API key và usage để vận hành dashboard, bot thanh toán và cơ chế đối soát quyền lợi.',
       keys: 'API key có thể bị tạm khóa, giới hạn thiết bị, reset quota hoặc thu hồi nếu có dấu hiệu chia sẻ trái phép, lạm dụng hoặc vi phạm điều khoản.',
       abuse: 'Các hành vi tạo tài khoản ảo, tự giới thiệu vòng lặp, tạo giao dịch giả hoặc khai thác điểm thưởng sai mục đích có thể bị hủy điểm và khóa quyền đổi thưởng.',
       refund: 'Gói đã kích hoạt sẽ bắt đầu tính thời gian hoặc quota ngay sau khi duyệt. Hoàn tiền hoặc đổi gói chỉ được xem xét theo từng trường hợp khi có lỗi được hệ thống xác nhận.',
@@ -160,7 +160,7 @@ const vi = {
   expired: { badge: 'API key hết hạn', title: 'API key đã hết hạn', text: 'Key này không còn thời gian sử dụng. Hãy đăng nhập bằng key khác hoặc yêu cầu gói mới để tiếp tục.', login: 'Đăng nhập lại', home: 'Về trang chủ' },
   auth: {
     home: 'Trang chủ',
-    badge: 'Truy cập 9router',
+    badge: 'Truy cập AzGate',
     title: 'Đăng nhập dashboard developer',
     subtitle: 'Đăng nhập bằng API key hoặc dùng tài khoản để yêu cầu cấp key theo gói.',
     usernameMode: 'Tài khoản',
@@ -196,7 +196,7 @@ const en = {
     badge: 'API gateway for AI coding tools',
     eyebrow: 'One key. One endpoint. Easier control.',
     title: 'Use multiple AI models in your IDE through one API',
-    subtitle: '9router lets you use models such as Claude, GPT and Gemini in supported IDEs without managing several provider setups. Pick a plan, receive an API key, connect it to your tool and track usage from the dashboard.',
+    subtitle: 'AzGate lets you use models such as Claude, GPT and Gemini in supported IDEs without managing several provider setups. Pick a plan, receive an API key, connect it to your tool and track usage from the dashboard.',
     cta: 'Open dashboard',
     ctaPricing: 'View plans',
   },
@@ -250,7 +250,7 @@ const en = {
     badge: 'Telegram bot',
     title: 'Buy a plan and receive your API key on Telegram',
     text: 'Open the Telegram bot to view available plans, create a key request and receive setup instructions. After approval, you can use the key in your IDE or sign in to the dashboard to track usage.',
-    imageAlt: '9router Telegram bot QR code',
+    imageAlt: 'AzGate Telegram bot QR code',
   },
   bulk: {
     badge: 'Bulk benefits',
@@ -275,17 +275,17 @@ const en = {
     badge: 'Terms',
     title: 'Terms of service',
     items: {
-      service: '9router provides an API gateway for using AI models in supported IDEs and agents. Users are responsible for protecting API keys and using the service lawfully.',
+      service: 'AzGate provides an API gateway for using AI models in supported IDEs and agents. Users are responsible for protecting API keys and using the service lawfully.',
       payment: 'A transaction is complete only after the key request is confirmed and the API key becomes active.',
       fairUse: 'Hourly plans allow frequent calls during the active period, but rate limits, concurrency limits and anti-sharing checks still apply.',
-      rewards: 'Reward credit, promotion keys and bulk benefits are calculated from system records at approval time. 9router may refuse benefits when abuse or fraud is detected.',
+      rewards: 'Reward credit, promotion keys and bulk benefits are calculated from system records at approval time. AzGate may refuse benefits when abuse or fraud is detected.',
     },
   },
   policy: {
     badge: 'Policy',
     title: 'Operating policy',
     items: {
-      data: '9router stores account, Telegram, transaction, API key and usage data to operate the dashboard, payment bot and benefit reconciliation.',
+      data: 'AzGate stores account, Telegram, transaction, API key and usage data to operate the dashboard, payment bot and benefit reconciliation.',
       keys: 'API keys may be temporarily locked, device-limited, quota-reset or revoked if sharing, abuse or terms violations are detected.',
       abuse: 'Fake accounts, referral loops, fake transactions or reward exploitation may result in cancelled credit and blocked reward redemption.',
       refund: 'Activated plans start consuming time or quota immediately after approval. Refunds or plan changes are reviewed case by case when a system-confirmed error occurs.',
@@ -301,7 +301,7 @@ const en = {
   },
   expired: { badge: 'API key expired', title: 'Your API key has expired', text: 'This key no longer has usable time. Sign in with another key or request a new package to continue.', login: 'Login again', home: 'Back home' },
   auth: {
-    home: 'Home', badge: '9router access', title: 'Access the developer dashboard', subtitle: 'Login by API key, or use an account to request package-based keys.', usernameMode: 'Account', login: 'Login', register: 'Register', username: 'Username', password: 'Password', referralCode: 'Referral code', optional: 'Optional', optionalNumeric: 'Optional numeric ID', optionalUsername: 'Optional username', bankName: 'Bank name', bankAccountName: 'Bank account name', bankAccountNumber: 'Account number', verifying: 'Verifying...', createAccount: 'Create account', enterDashboard: 'Enter dashboard',
+    home: 'Home', badge: 'AzGate access', title: 'Access the developer dashboard', subtitle: 'Login by API key, or use an account to request package-based keys.', usernameMode: 'Account', login: 'Login', register: 'Register', username: 'Username', password: 'Password', referralCode: 'Referral code', optional: 'Optional', optionalNumeric: 'Optional numeric ID', optionalUsername: 'Optional username', bankName: 'Bank name', bankAccountName: 'Bank account name', bankAccountNumber: 'Account number', verifying: 'Verifying...', createAccount: 'Create account', enterDashboard: 'Enter dashboard',
   },
 };
 
