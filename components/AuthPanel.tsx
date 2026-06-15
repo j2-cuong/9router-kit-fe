@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, KeyRound, LogIn, UserPlus, ShieldAlert, X } from 'lucide-react';
+import { ArrowLeft, KeyRound, LogIn, UserPlus, X } from 'lucide-react';
 import { ApiError, api } from '../lib/api';
 import { useRouter } from 'next/navigation';
 import { LangToggle } from './LangToggle';
@@ -60,7 +60,6 @@ export default function AuthPanel({ variant = 'page', onClose }: AuthPanelProps)
   const [bankAccountName, setBankAccountName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [activeNotice, setActiveNotice] = useState<{ title: string; content: string; image_url: string; status: string } | null>(null);
   const [captchaCode, setCaptchaCode] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
   const [error, setError] = useState('');
@@ -81,15 +80,6 @@ export default function AuthPanel({ variant = 'page', onClose }: AuthPanelProps)
       setCaptchaInput('');
     }
   }, [accountMode]);
-  useEffect(() => {
-    api<any>('/notifications/active')
-      .then(res => {
-        if (res && res.status === 'active') {
-          setActiveNotice(res);
-        }
-      })
-      .catch(() => {});
-  }, []);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (busy) return;
@@ -200,14 +190,6 @@ export default function AuthPanel({ variant = 'page', onClose }: AuthPanelProps)
           <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close auth modal">
             <X size={18} />
           </button>
-          {activeNotice && (
-            <div className="panel auth-notice">
-              <strong><ShieldAlert size={16} /> Thông Báo Bảo Trì Hệ Thống</strong>
-              <h3>{activeNotice.title}</h3>
-              <p>{activeNotice.content}</p>
-              {activeNotice.image_url && <img src={activeNotice.image_url} alt="Bảo trì" />}
-            </div>
-          )}
           {authForm}
         </div>
       </div>
@@ -220,14 +202,6 @@ export default function AuthPanel({ variant = 'page', onClose }: AuthPanelProps)
       <Link className="btn btn-sm" href="/"><ArrowLeft size={16} /> {t('auth.home')}</Link>
       <LangToggle />
     </nav>
-    {activeNotice && (
-      <div className="panel auth-notice auth-page-notice">
-        <strong><ShieldAlert size={16} /> Thông Báo Bảo Trì Hệ Thống</strong>
-        <h3>{activeNotice.title}</h3>
-        <p>{activeNotice.content}</p>
-        {activeNotice.image_url && <img src={activeNotice.image_url} alt="Bảo trì" />}
-      </div>
-    )}
     {authForm}
   </main>;
 }
