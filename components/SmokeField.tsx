@@ -28,6 +28,7 @@ interface SmokeyCursorProps {
   intensity?: number;
   followMouse?: boolean;
   autoColors?: boolean;
+  ignoredSelector?: string;
 }
 
 interface Pointer {
@@ -78,6 +79,7 @@ export function SmokeField({
   intensity = 1,
   followMouse = true,
   autoColors = true,
+  ignoredSelector = '',
 }: SmokeyCursorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -1431,7 +1433,15 @@ export function SmokeField({
       return ((value - min) % range) + min;
     }
 
+    function shouldSkipPointerEvent(event: Event) {
+      if (disabled || !followMouse) return true;
+      if (!ignoredSelector) return false;
+      const target = event.target;
+      return target instanceof Element && Boolean(target.closest(ignoredSelector));
+    }
+
     window.addEventListener('mousedown', (e) => {
+      if (shouldSkipPointerEvent(e)) return;
       const pointer = pointers[0];
       const posX = scaleByPixelRatio(e.clientX);
       const posY = scaleByPixelRatio(e.clientY);
@@ -1440,6 +1450,7 @@ export function SmokeField({
     });
 
     function handleFirstMouseMove(e: MouseEvent) {
+      if (shouldSkipPointerEvent(e)) return;
       const pointer = pointers[0];
       const posX = scaleByPixelRatio(e.clientX);
       const posY = scaleByPixelRatio(e.clientY);
@@ -1451,6 +1462,10 @@ export function SmokeField({
     document.body.addEventListener('mousemove', handleFirstMouseMove);
 
     window.addEventListener('mousemove', (e) => {
+      if (shouldSkipPointerEvent(e)) {
+        updatePointerUpData(pointers[0]);
+        return;
+      }
       const pointer = pointers[0];
       const posX = scaleByPixelRatio(e.clientX);
       const posY = scaleByPixelRatio(e.clientY);
@@ -1459,6 +1474,7 @@ export function SmokeField({
     });
 
     function handleFirstTouchStart(e: TouchEvent) {
+      if (shouldSkipPointerEvent(e)) return;
       const touches = e.targetTouches;
       const pointer = pointers[0];
       for (let i = 0; i < touches.length; i++) {
@@ -1474,6 +1490,7 @@ export function SmokeField({
     window.addEventListener(
       'touchstart',
       (e) => {
+        if (shouldSkipPointerEvent(e)) return;
         const touches = e.targetTouches;
         const pointer = pointers[0];
         for (let i = 0; i < touches.length; i++) {
@@ -1488,6 +1505,10 @@ export function SmokeField({
     window.addEventListener(
       'touchmove',
       (e) => {
+        if (shouldSkipPointerEvent(e)) {
+          updatePointerUpData(pointers[0]);
+          return;
+        }
         const touches = e.targetTouches;
         const pointer = pointers[0];
         for (let i = 0; i < touches.length; i++) {
@@ -1521,6 +1542,9 @@ export function SmokeField({
     colorUpdateSpeed,
     backgroundColor,
     transparent,
+    disabled,
+    followMouse,
+    ignoredSelector,
   ]);
 
   return (
