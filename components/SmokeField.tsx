@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ColorRGB {
   r: number;
@@ -82,6 +82,12 @@ export function SmokeField({
   ignoredSelector = '',
 }: SmokeyCursorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isTouchDevice] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+  });
+
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1558,6 +1564,9 @@ export function SmokeField({
     followMouse,
     ignoredSelector,
   ]);
+
+  if (isTouchDevice) return null;
+
 
   return (
     <div className="smoke-stage" aria-hidden="true">

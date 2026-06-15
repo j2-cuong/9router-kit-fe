@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, Menu, ShieldCheck, Sparkles, X, Zap } from 'lucide-react';
 import { LangToggle } from './LangToggle';
 import AuthPanel from './AuthPanel';
 import { useI18n } from '../lib/i18n';
@@ -36,6 +36,7 @@ export function MarketingNav() {
   const { t } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 16);
@@ -43,6 +44,19 @@ export function MarketingNav() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
 
   return (
     <>
@@ -60,7 +74,30 @@ export function MarketingNav() {
           <LogIn size={16} /> {t('nav.login')}
         </button>
         </div>
+        <button type="button" className="nav-hamburger" onClick={() => setIsMenuOpen(true)} aria-label="Open menu">
+          <Menu size={22} />
+        </button>
       </nav>
+      {isMenuOpen && (
+        <div className="nav-mobile-overlay" onClick={() => setIsMenuOpen(false)}>
+          <div className="nav-mobile-drawer" onClick={e => e.stopPropagation()}>
+            <div className="nav-mobile-header">
+              <span className="nav-mobile-title">Menu</span>
+              <button type="button" className="nav-mobile-close" onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
+                <X size={22} />
+              </button>
+            </div>
+            <div className="nav-mobile-links">
+              <Link className="nav-mobile-link" href="/pricing" onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</Link>
+              <Link className="nav-mobile-link" href="/bulk" onClick={() => setIsMenuOpen(false)}>{t('nav.bulk')}</Link>
+              <Link className="nav-mobile-link" href="/referral" onClick={() => setIsMenuOpen(false)}>{t('nav.referral')}</Link>
+              <Link className="nav-mobile-link" href="/bot" onClick={() => setIsMenuOpen(false)}>{t('nav.bot')}</Link>
+              <Link className="nav-mobile-link" href="/terms" onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</Link>
+              <Link className="nav-mobile-link" href="/policy" onClick={() => setIsMenuOpen(false)}>{t('nav.policy')}</Link>
+            </div>
+          </div>
+        </div>
+      )}
       {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
     </>
   );
