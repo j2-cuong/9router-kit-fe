@@ -1,0 +1,22 @@
+# 9router
+
+9router is a premium AI model API gateway for coding IDEs and developer agents.
+
+Primary value proposition:
+- One OpenAI-compatible endpoint for supported coding IDEs.
+- Premium model routing for Claude 4.8, GPT 5.5, Gemini 3.5 and future high-end coding models.
+- Telegram bot handles pricing, package purchase and approval.
+- API key dashboard shows key status, request count, input tokens, output tokens, token remaining and expiration time.
+
+Important routes:
+- `/`: marketing landing page with supported models and product positioning.
+- `/login`: API key login connected to the Go Server endpoint `/auth/api-key/login`.
+- `/dashboard`: authenticated API key dashboard.
+
+Use cases:
+- Connect Codex or other supported coding IDEs to a single API gateway.
+- Monitor API key usage and remaining package time.
+- Sell token packages through a Telegram approval workflow.
+
+Pricing:
+- See the Telegram bot for current package pricing and availability.
