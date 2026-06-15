@@ -1,6 +1,20 @@
 import type { Metadata } from 'next';
+import { Manrope, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../components/Providers';
+
+
+const displayFont = Space_Grotesk({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const bodyFont = Manrope({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-body',
+  display: 'swap',
+});
 
 const siteName = '9router';
 const siteDescription = 'Modern API gateway for premium coding IDEs, routing Claude 4.8, GPT 5.5, Gemini 3.5 and more through a single secure key layer.';
@@ -43,7 +57,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi">
+    <html lang="vi" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>

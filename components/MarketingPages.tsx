@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, Menu, ShieldCheck, Sparkles, X, Zap } from 'lucide-react';
 import { LangToggle } from './LangToggle';
+import AuthPanel from './AuthPanel';
 import { useI18n } from '../lib/i18n';
 import { api } from '../lib/api';
 
@@ -29,13 +30,39 @@ const modelNames = ['Claude 4.8', 'GPT 5.5', 'Gemini 3.5', 'Codex IDE'];
 const modelTags = ['premium', 'routing', 'studio', 'ready'] as const;
 const featureIcons = [Cable, Bot, Gauge, ShieldCheck] as const;
 const featureKeys = ['endpoint', 'premium', 'packages', 'telegram'] as const;
+const telegramBotUrl = 'https://t.me/api_agent_shop_8866_bot';
 
 export function MarketingNav() {
   const { t } = useI18n();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 16);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   return (
-    <nav className="top-nav">
-      <Link className="nav-logo" href="/">9router</Link>
-      <div className="nav-actions">
+    <>
+      <nav className={isScrolled ? 'top-nav top-nav-scrolled' : 'top-nav'}>
+        <Link className="nav-logo" href="/">AzGate</Link>
+        <div className="nav-actions">
         <Link className="nav-link" href="/pricing">{t('nav.pricing')}</Link>
         <Link className="nav-link" href="/bulk">{t('nav.bulk')}</Link>
         <Link className="nav-link" href="/referral">{t('nav.referral')}</Link>
@@ -43,11 +70,36 @@ export function MarketingNav() {
         <Link className="nav-link" href="/terms">{t('nav.terms')}</Link>
         <Link className="nav-link" href="/policy">{t('nav.policy')}</Link>
         <LangToggle />
-        <Link className="btn btn-sm" href="/login">
+        <button type="button" className="btn btn-sm" onClick={() => setIsAuthOpen(true)}>
           <LogIn size={16} /> {t('nav.login')}
-        </Link>
-      </div>
-    </nav>
+        </button>
+        </div>
+        <button type="button" className="nav-hamburger" onClick={() => setIsMenuOpen(true)} aria-label="Open menu">
+          <Menu size={22} />
+        </button>
+      </nav>
+      {isMenuOpen && (
+        <div className="nav-mobile-overlay" onClick={() => setIsMenuOpen(false)}>
+          <div className="nav-mobile-drawer" onClick={e => e.stopPropagation()}>
+            <div className="nav-mobile-header">
+              <span className="nav-mobile-title">Menu</span>
+              <button type="button" className="nav-mobile-close" onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
+                <X size={22} />
+              </button>
+            </div>
+            <div className="nav-mobile-links">
+              <Link className="nav-mobile-link" href="/pricing" onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</Link>
+              <Link className="nav-mobile-link" href="/bulk" onClick={() => setIsMenuOpen(false)}>{t('nav.bulk')}</Link>
+              <Link className="nav-mobile-link" href="/referral" onClick={() => setIsMenuOpen(false)}>{t('nav.referral')}</Link>
+              <Link className="nav-mobile-link" href="/bot" onClick={() => setIsMenuOpen(false)}>{t('nav.bot')}</Link>
+              <Link className="nav-mobile-link" href="/terms" onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</Link>
+              <Link className="nav-mobile-link" href="/policy" onClick={() => setIsMenuOpen(false)}>{t('nav.policy')}</Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
+    </>
   );
 }
 
@@ -78,7 +130,7 @@ export function HomeMarketingPage() {
             <h1 className="hero-title"><span className="glow">{t('hero.title')}</span></h1>
             <p className="hero-subtitle">{t('hero.subtitle')}</p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" href="/login">{t('hero.cta')} <ArrowRight size={18} /></Link>
+              <AuthCtaButton iconSize={18} />
               <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
             </div>
           </div>
@@ -118,9 +170,13 @@ export function HomeMarketingPage() {
 export function PricingPage() {
   const { t } = useI18n();
   const [packages, setPackages] = useState<PackagePlan[]>([]);
+  const [isLoadingPackages, setIsLoadingPackages] = useState(true);
 
   useEffect(() => {
-    api<{ items: PackagePlan[] }>('/account/packages').then(data => setPackages(data.items)).catch(() => setPackages([]));
+    api<{ items: PackagePlan[] }>('/account/packages')
+      .then(data => setPackages(data.items))
+      .catch(() => setPackages([]))
+      .finally(() => setIsLoadingPackages(false));
   }, []);
 
   const visiblePackages = useMemo(() => packages.filter(plan => !isDefaultPackage(plan)), [packages]);
@@ -145,7 +201,8 @@ export function PricingPage() {
               <p className="muted">{t('pricing.hourlyDesc')}</p>
             </div>
             <div className="pricing-card-body">
-              {hourlyPlans.length === 0 && <p className="muted">{t('pricing.noPlans')}</p>}
+              {isLoadingPackages && <PricingSkeleton rows={3} />}
+              {!isLoadingPackages && hourlyPlans.length === 0 && <p className="muted">{t('pricing.noPlans')}</p>}
               {hourlyPlans.map((plan, index) => (
                 <div className={index === 2 ? 'pricing-row pricing-best' : 'pricing-row'} key={plan.id}>
                   <span className="pricing-price">{formatCompactVND(plan.price)}</span>
@@ -169,7 +226,8 @@ export function PricingPage() {
                   <span>{t('pricing.price')}</span>
                   <span>{t('pricing.duration')}</span>
                 </div>
-                {tokenPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noPlans')}</span><span>-</span><span>-</span></div>}
+                {isLoadingPackages && <PricingTableSkeleton rows={4} />}
+                {!isLoadingPackages && tokenPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noPlans')}</span><span>-</span><span>-</span></div>}
                 {tokenPlans.map(plan => (
                   <div className="pricing-table-row" key={plan.id}>
                     <span>{formatToken(effectiveTokenLimit(plan))}</span>
@@ -195,7 +253,8 @@ export function PricingPage() {
                   <span>{t('pricing.price')}</span>
                   <span>{t('pricing.duration')}</span>
                 </div>
-                {weekPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noWeekPlans')}</span><span>-</span><span>-</span></div>}
+                {isLoadingPackages && <PricingTableSkeleton rows={3} />}
+                {!isLoadingPackages && weekPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noWeekPlans')}</span><span>-</span><span>-</span></div>}
                 {weekPlans.map(plan => (
                   <div className="pricing-table-row" key={plan.id}>
                     <span>{formatToken(plan.token_limit)}<span className="muted">/ngày</span></span>
@@ -259,7 +318,7 @@ export function BotPage() {
             <h1>{t('botQr.title')}</h1>
             <p className="muted">{t('botQr.text')}</p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" href="/login">{t('hero.cta')} <ArrowRight size={16} /></Link>
+              <a className="btn btn-primary" href={telegramBotUrl} target="_blank" rel="noopener noreferrer">{t('botQr.badge')} <ArrowRight size={16} /></a>
               <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
             </div>
           </article>
@@ -280,6 +339,26 @@ export function TermsPage() {
 export function PolicyPage() {
   const { t } = useI18n();
   return <LegalPage badge={t('policy.badge')} title={t('policy.title')} items={['data', 'keys', 'abuse', 'refund'].map(key => t(`policy.items.${key}`))} />;
+}
+
+function PricingSkeleton({ rows }: { rows: number }) {
+  return Array.from({ length: rows }, (_, index) => (
+    <div className="pricing-row pricing-row-skeleton" key={index}>
+      <span className="skeleton-line skeleton-price" />
+      <span className="skeleton-line skeleton-meta" />
+      <span className="skeleton-line skeleton-badge" />
+    </div>
+  ));
+}
+
+function PricingTableSkeleton({ rows }: { rows: number }) {
+  return Array.from({ length: rows }, (_, index) => (
+    <div className="pricing-table-row pricing-row-skeleton" key={index}>
+      <span className="skeleton-line" />
+      <span className="skeleton-line" />
+      <span className="skeleton-line" />
+    </div>
+  ));
 }
 
 function RouteShell({ children }: { children: React.ReactNode }) {
@@ -323,6 +402,21 @@ function LegalPage({ badge, title, items }: { badge: string; title: string; item
         </div>
       </section>
     </RouteShell>
+  );
+}
+
+
+function AuthCtaButton({ iconSize }: { iconSize: number }) {
+  const { t } = useI18n();
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" className="btn btn-primary" onClick={() => setIsAuthOpen(true)}>
+        {t('hero.cta')} <ArrowRight size={iconSize} />
+      </button>
+      {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
+    </>
   );
 }
 

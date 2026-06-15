@@ -9,15 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "latest",
+    "@gsap/react": "^2.1.2",
+    "gsap": "^3.15.0",
+    "lucide-react": "latest",
     "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest"
+    "react-dom": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "next": "^16.2.9",
     "typescript": "latest"
   }
 }

@@ -379,7 +379,7 @@ function ApiKeyRequestCard({ session, timeLeft }: { session: LoginResult; timeLe
             <p style={{ margin: '6px 0', fontSize: '0.85rem', opacity: 0.85 }}>
               API key này đã hết hạn. Bạn có thể gia hạn để tiếp tục sử dụng.
             </p>
-            <a href={`https://t.me/API_Agent_Shop_8866_bot?start=renew_${session.api_key.id}`}
+            <a href={`${telegramBotUrl}?start=renew_${session.api_key.id}`}
                target="_blank" rel="noopener noreferrer"
                className="btn btn-primary"
                style={{ width: '100%', textAlign: 'center', textDecoration: 'none', marginTop: 8 }}>
