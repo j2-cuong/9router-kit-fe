@@ -408,3 +408,27 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
   .nav-actions .btn { min-height: 40px; padding: 0 12px; }
   .floating-note { padding: 7px 10px; }
 }
+
+/* Keep smoke cursor visible on open background, but below readable content */
+.smoke-stage {
+  z-index: 8;
+  opacity: .78;
+  filter: saturate(1.08);
+}
+
+.smoke-canvas { opacity: .9; }
+
+.hero-content,
+.route-page-section,
+.section,
+.panel,
+.model-card,
+.pricing-card,
+.command-rail,
+.account-full-shell,
+.api-dashboard-full-shell {
+  position: relative;
+  z-index: 12;
+}
+
+.top-nav { z-index: 50; }
