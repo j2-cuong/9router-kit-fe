@@ -142,7 +142,7 @@ export function AuthPanel() {
   return <main className="auth-shell shell-grid">
     <div className="noise" />
     <div className="hero-sheen" />
-    <nav className="top-nav">
+    <nav className="auth-nav" data-no-smoke>
       <Link className="btn btn-sm" href="/"><ArrowLeft size={16} /> {t('auth.home')}</Link>
       <LangToggle />
     </nav>
