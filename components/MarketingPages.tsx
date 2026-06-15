@@ -30,6 +30,7 @@ const modelNames = ['Claude 4.8', 'GPT 5.5', 'Gemini 3.5', 'Codex IDE'];
 const modelTags = ['premium', 'routing', 'studio', 'ready'] as const;
 const featureIcons = [Cable, Bot, Gauge, ShieldCheck] as const;
 const featureKeys = ['endpoint', 'premium', 'packages', 'telegram'] as const;
+const telegramBotUrl = 'https://t.me/api_agent_shop_8866_bot';
 
 export function MarketingNav() {
   const { t } = useI18n();
@@ -280,7 +281,7 @@ export function BotPage() {
             <h1>{t('botQr.title')}</h1>
             <p className="muted">{t('botQr.text')}</p>
             <div className="hero-actions">
-              <AuthCtaButton iconSize={16} />
+              <a className="btn btn-primary" href={telegramBotUrl} target="_blank" rel="noopener noreferrer">{t('botQr.badge')} <ArrowRight size={16} /></a>
               <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
             </div>
           </article>
