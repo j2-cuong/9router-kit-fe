@@ -378,7 +378,7 @@ function RouteShell({ children }: { children: React.ReactNode }) {
       <MarketingNav />
       <div className="noise" />
       <div className="hero-sheen" />
-      {children}
+      <div className="route-content">{children}</div>
       <MarketingFooter />
     </main>
   );
