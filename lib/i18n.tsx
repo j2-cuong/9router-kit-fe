@@ -24,6 +24,7 @@ function getNestedValue(obj: any, path: string): string {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('vi');
   const [dict, setDict] = useState<Dict>(dictionaries.vi);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('lang') as Lang | null;
@@ -32,6 +33,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setDict(dictionaries.en);
       document.documentElement.lang = 'en';
     }
+    setReady(true);
   }, []);
 
   const setLang = useCallback((l: Lang) => {
@@ -45,5 +47,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback((key: string) => getNestedValue(dict, key), [dict]);
 
-  return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>;
+  return <div style={ready ? {} : { visibility: 'hidden' }}>
+    <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>
+  </div>;
 }
