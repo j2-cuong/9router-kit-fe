@@ -21,7 +21,7 @@ export default function ExpiredPage() {
       <h1 style={{ margin: '18px 0 10px', fontSize: '2.2rem', lineHeight: 1.05, letterSpacing: '-.04em' }}>{t('expired.title')}</h1>
       <p className="muted" style={{ margin: 0, lineHeight: 1.7 }}>{t('expired.text')}</p>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 22 }}>
-        <Link className="btn btn-primary" href="/login"><LogIn size={18} /> {t('expired.login')}</Link>
+        <Link className="btn btn-primary" href="/"><LogIn size={18} /> {t('expired.login')}</Link>
         <Link className="btn" href="/"><Sparkles size={18} /> {t('expired.home')}</Link>
       </div>
     </section>

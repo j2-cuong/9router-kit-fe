@@ -191,7 +191,7 @@ export function DashboardClient() {
     if (mode === 'account') {
       const token = localStorage.getItem('9router_account_token');
       if (!token) {
-        router.push('/login');
+        router.push('/');
         return;
       }
       loadAccountDashboard(token);
@@ -199,7 +199,7 @@ export function DashboardClient() {
     }
     const stored = localStorage.getItem('9router_api_key');
     if (!stored) {
-      router.push('/login');
+      router.push('/');
       return;
     }
     setApiKey(stored);
@@ -503,7 +503,7 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
             <span className="avatar-circle">{initials}</span>
             <span className="avatar-name">{session.account.username}</span>
           </button>
-          <button type="button" className="btn" onClick={() => { localStorage.removeItem('9router_account_token'); localStorage.removeItem('9router_account_session'); localStorage.removeItem('9router_auth_mode'); location.href = '/login'; }} style={{ padding: '8px 10px', borderRadius: 12 }}>
+          <button type="button" className="btn" onClick={() => { localStorage.removeItem('9router_account_token'); localStorage.removeItem('9router_account_session'); localStorage.removeItem('9router_auth_mode'); location.href = '/'; }} style={{ padding: '8px 10px', borderRadius: 12 }}>
             <LogOut size={18} />
           </button>
         </div>
