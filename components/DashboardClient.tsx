@@ -280,13 +280,6 @@ export function DashboardClient() {
   const tokenUsed = session.api_key.token_used;
   const tokenPercent = tokenLimit > 0 ? Math.min(100, Math.round((tokenUsed / tokenLimit) * 100)) : 0;
 
-  const cards = isWeekly ? [] : [
-    { label: 'Requests', value: session.usage.request_count, icon: ListChecks },
-    { label: 'Input tokens', value: session.usage.input_tokens, icon: Database },
-    { label: 'Output tokens', value: session.usage.output_tokens, icon: SquareActivity },
-    { label: 'Time left', value: expiresLabel, icon: Clock3 }
-  ];
-
   if (loading) return <main className="shell-grid auth-shell"><div className="panel auth-card">Loading...</div></main>;
 
   if (authMode === 'account' && accountSession) return <AccountDashboard2
@@ -337,14 +330,6 @@ export function DashboardClient() {
       </div>
 
       {error && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(255,100,100,.3)', color: '#ffd9df' }}>{error}</div>}
-
-      {!isWeekly && <div className="section-grid" style={{ marginBottom: 20 }}>
-        {cards.map(card => <article key={card.label} className="panel metric" style={{ gridColumn: 'span 3' }}>
-          <card.icon color="var(--cyan)" size={22} />
-          <div className="metric-value" style={{ fontSize: card.label === 'Time left' ? '1.6rem' : '2rem' }}>{String(card.value)}</div>
-          <div className="metric-label">{card.label}</div>
-        </article>)}
-      </div>}
 
       {isWeekly && <article className="panel metric" style={{ marginBottom: 20, padding: '18px 22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
