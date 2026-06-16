@@ -212,8 +212,9 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
             </div>
 
             {order.bank_account && (() => {
-              const bank = order.bank_account.includes('-') ? order.bank_account : `ACB-${order.bank_account}`;
-              const vietqrSrc = `https://img.vietqr.io/image/${bank}-qr_only.png?amount=${Math.round(Number(order.order.amount))}&addInfo=${encodeURIComponent(order.order.code)}`;
+              const bank = order.bank_account.includes('-') ? order.bank_account.split('-')[0] : 'ACB';
+              const acc = order.bank_account.includes('-') ? order.bank_account.split('-')[1] : order.bank_account;
+              const vietqrSrc = `https://qr.sepay.vn/img?acc=${acc}&bank=${bank}&amount=${Math.round(Number(order.order.amount))}&des=${encodeURIComponent(order.order.code)}&template=qr_only&showinfo=false`;
               return (
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                   <img src={vietqrSrc} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
