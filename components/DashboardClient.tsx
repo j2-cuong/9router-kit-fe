@@ -499,15 +499,7 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
         <div className="account-sidebar-brand"><strong>9router</strong><LangToggle /></div>
         <div className="account-sidebar-profile"><span className="floating-note"><ShieldCheck size={16} /> {t('dashboard.account')}</span><h1>{session.account.username}</h1><p className="muted">{t('dashboard.referral')}: {session.account.referral_code}</p></div>
         <nav className="account-sidebar-nav">{nav.map(([id, label, Icon]) => <button key={id} type="button" className={tab === id ? 'btn btn-primary' : 'btn'} onClick={() => setTab(id)}><Icon size={17} />{label}</button>)}</nav>
-      </aside>
-      <div className="account-main">
-        <div className="dashboard-topbar">
-        <div>
-          <span className="floating-note"><ShieldCheck size={16} /> {t('dashboard.badge')}</span>
-          <h1 style={{ margin: '14px 0 8px', fontSize: '2.1rem', letterSpacing: '-.03em' }}>{t('dashboard.welcome')}, {session.account.username}</h1>
-          <p className="muted" style={{ margin: 0, lineHeight: 1.7 }}>{t('dashboard.subtitle')}</p>
-        </div>
-        <div className="avatar-menu-wrap">
+        <div className="avatar-menu-wrap" style={{ marginTop: 'auto', padding: '12px 16px' }}>
           <button type="button" className="avatar-button" onClick={() => setAccountMenuOpen(v => !v)} aria-label={t('dashboard.accountMenu')}>
             <span className="avatar-circle">{initials}</span>
             <span className="avatar-name">{session.account.username}</span>
@@ -517,6 +509,14 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
             <button type="button" onClick={() => { setTab('settings'); setAccountMenuOpen(false); }}><Settings size={16} /> {t('dashboard.settings')}</button>
             <button type="button" onClick={() => { localStorage.removeItem('9router_account_token'); localStorage.removeItem('9router_account_session'); localStorage.removeItem('9router_auth_mode'); location.href = '/login'; }}><LogOut size={16} /> {t('dashboard.logout')}</button>
           </div>}
+        </div>
+      </aside>
+      <div className="account-main">
+        <div className="dashboard-topbar">
+        <div>
+          <span className="floating-note"><ShieldCheck size={16} /> {t('dashboard.badge')}</span>
+          <h1 style={{ margin: '14px 0 8px', fontSize: '2.1rem', letterSpacing: '-.03em' }}>{t('dashboard.welcome')}, {session.account.username}</h1>
+          <p className="muted" style={{ margin: 0, lineHeight: 1.7 }}>{t('dashboard.subtitle')}</p>
         </div>
         </div>
       {approvedKeys.length > 0 && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(74,222,128,.28)' }}><Bell size={18} color="#86efac" /> <strong>{t('dashboard.approvedNotice')}</strong><p className="muted" style={{ margin: '8px 0 0' }}>{t('dashboard.approvedText')}</p></div>}
