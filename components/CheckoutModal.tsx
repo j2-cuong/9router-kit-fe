@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
-import { X, Clock3, CheckCircle2, Loader2, Copy, Check } from 'lucide-react';
+import { X, CheckCircle2, Loader2, Copy, Check } from 'lucide-react';
 
 type OrderResponse = {
   order: {
@@ -56,6 +56,12 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
       createOrder();
     }
   }, [open, orderCode]);
+
+  useEffect(() => {
+    if (open && order && status === 'idle' && order.order.status === 'pending') {
+      startPolling();
+    }
+  }, [open, order, status]);
 
   async function createOrder() {
     setLoading(true);
@@ -199,12 +205,6 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
               <p style={{ margin: '0 0 6px' }}>Nội dung chuyển khoản: <strong>{order.order.code}</strong></p>
               {order.bank_account && <p style={{ margin: 0 }}>TK: {order.bank_account}</p>}
             </div>
-
-            {status === 'idle' && (
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={startPolling}>
-                <Clock3 size={16} /> Kiểm tra giao dịch
-              </button>
-            )}
 
             {status === 'polling' && (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>

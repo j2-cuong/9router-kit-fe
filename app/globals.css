@@ -681,3 +681,55 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
   .nav-actions .btn-sm { min-height: 38px; padding: 0 11px; font-size: .8rem; }
   .nav-logo { font-size: 1.15rem; }
 }
+
+.marketing-footer {
+  position: relative;
+  z-index: 12;
+  border-top: 1px solid rgba(155, 190, 255, 0.08);
+  background: rgba(4, 7, 15, 0.5);
+  backdrop-filter: blur(12px);
+  padding: 24px clamp(18px, 4vw, 56px);
+}
+
+.marketing-footer-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.marketing-footer-link {
+  color: var(--muted);
+  font-size: .86rem;
+  transition: color .2s ease;
+}
+
+.marketing-footer-link:hover {
+  color: var(--text);
+}
+
+.marketing-footer-sep {
+  color: rgba(155, 190, 255, 0.2);
+  font-size: .86rem;
+}
+
+.marketing-footer-copy {
+  color: rgba(155, 190, 255, 0.3);
+  font-size: .82rem;
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .marketing-footer {
+    padding: 18px 16px;
+  }
+  .marketing-footer-inner {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .marketing-footer-copy {
+    margin-left: 0;
+    width: 100%;
+  }
+}

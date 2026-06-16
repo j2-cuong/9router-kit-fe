@@ -67,8 +67,6 @@ export function MarketingNav() {
         <Link className="nav-link" href="/bulk">{t('nav.bulk')}</Link>
         <Link className="nav-link" href="/referral">{t('nav.referral')}</Link>
         <Link className="nav-link" href="/bot">{t('nav.bot')}</Link>
-        <Link className="nav-link" href="/terms">{t('nav.terms')}</Link>
-        <Link className="nav-link" href="/policy">{t('nav.policy')}</Link>
         <LangToggle />
         <button type="button" className="btn btn-sm" onClick={() => setIsAuthOpen(true)}>
           <LogIn size={16} /> {t('nav.login')}
@@ -92,8 +90,6 @@ export function MarketingNav() {
               <Link className="nav-mobile-link" href="/bulk" onClick={() => setIsMenuOpen(false)}>{t('nav.bulk')}</Link>
               <Link className="nav-mobile-link" href="/referral" onClick={() => setIsMenuOpen(false)}>{t('nav.referral')}</Link>
               <Link className="nav-mobile-link" href="/bot" onClick={() => setIsMenuOpen(false)}>{t('nav.bot')}</Link>
-              <Link className="nav-mobile-link" href="/terms" onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</Link>
-              <Link className="nav-mobile-link" href="/policy" onClick={() => setIsMenuOpen(false)}>{t('nav.policy')}</Link>
             </div>
           </div>
         </div>
@@ -163,7 +159,22 @@ export function HomeMarketingPage() {
           </div>
         </div>
       </section>
+      <MarketingFooter />
     </main>
+  );
+}
+
+export function MarketingFooter() {
+  const { t } = useI18n();
+  return (
+    <footer className="marketing-footer">
+      <div className="marketing-footer-inner">
+        <Link className="marketing-footer-link" href="/terms">{t('nav.terms')}</Link>
+        <span className="marketing-footer-sep">·</span>
+        <Link className="marketing-footer-link" href="/policy">{t('nav.policy')}</Link>
+        <span className="marketing-footer-copy">© {new Date().getFullYear()} AzGate</span>
+      </div>
+    </footer>
   );
 }
 
@@ -368,6 +379,7 @@ function RouteShell({ children }: { children: React.ReactNode }) {
       <div className="noise" />
       <div className="hero-sheen" />
       {children}
+      <MarketingFooter />
     </main>
   );
 }
