@@ -1,36 +1,55 @@
 'use client';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useI18n } from '@/lib/i18n';
 import { useEffect, useState } from 'react';
+import { ShieldAlert, X } from 'lucide-react';
+import { api } from '../lib/api';
 
-const HIDDEN_UNTIL = '2026-06-30T00:00:00+07:00';
+type Notice = {
+  title: string;
+  content: string;
+  image_url: string;
+  status: string;
+};
+
+const dismissMs = 3 * 60 * 60 * 1000;
+const storageKey = 'azgate_notice_dismissed_until';
 
 export function SiteNotice() {
-  const { lang } = useI18n();
-  const [show, setShow] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const target = new Date(HIDDEN_UNTIL).getTime();
-    const now = Date.now();
-    if (now < target) {
-      const timer = setTimeout(() => setShow(true), target - now);
-      return () => clearTimeout(timer);
-    }
-    setShow(true);
+    const dismissedUntil = Number(localStorage.getItem(storageKey) || 0);
+    if (Date.now() < dismissedUntil) return;
+
+    api<Notice>('/notifications/active')
+      .then(res => {
+        if (res?.status === 'active') {
+          setNotice(res);
+          setVisible(true);
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  if (!show) return null;
+  function closeNotice() {
+    localStorage.setItem(storageKey, String(Date.now() + dismissMs));
+    setVisible(false);
+  }
+
+  if (!visible || !notice) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
-      <Alert className="mx-auto max-w-3xl border-blue-500/30 bg-blue-950/80 text-blue-100 backdrop-blur-sm dark:bg-blue-950/80 dark:text-blue-100">
-        <AlertDescription>
-          {lang === 'vi'
-            ? '🎉 Dùng Telegram Bot @api_agent_shop_8866_bot để mua gói dung lượng, rẻ hơn 20-30% so với thanh toán qua website!'
-            : '🎉 Use Telegram Bot @api_agent_shop_8866_bot to buy packages, 20-30% cheaper than website checkout!'}
-        </AlertDescription>
-      </Alert>
-    </div>
+    <aside className="site-notice" role="status" aria-live="polite">
+      <div className="site-notice-icon"><ShieldAlert size={18} /></div>
+      <div className="site-notice-body">
+        <strong>{notice.title}</strong>
+        <p>{notice.content}</p>
+        {notice.image_url && <img src={notice.image_url} alt="Thông báo" />}
+      </div>
+      <button type="button" className="site-notice-close" onClick={closeNotice} aria-label="Đóng thông báo">
+        <X size={16} />
+      </button>
+    </aside>
   );
 }

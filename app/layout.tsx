@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Manrope, Space_Grotesk } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
-import { Providers } from '@/components/Providers';
+import { Providers } from '../components/Providers';
+
 
 const displayFont = Space_Grotesk({
   subsets: ['latin', 'vietnamese'],
@@ -12,7 +12,7 @@ const displayFont = Space_Grotesk({
 
 const bodyFont = Manrope({
   subsets: ['latin', 'vietnamese'],
-  variable: '--font-sans',
+  variable: '--font-body',
   display: 'swap',
 });
 
@@ -57,11 +57,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${displayFont.variable} ${bodyFont.variable}`} suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <Providers>{children}</Providers>
-        </ThemeProvider>
+    <html lang="vi" className={`${displayFont.variable} ${bodyFont.variable}`}>
+      <body suppressHydrationWarning>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

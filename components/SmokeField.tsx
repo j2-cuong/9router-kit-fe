@@ -1268,12 +1268,10 @@ export function SmokeField({
     }
 
     function clickSplat(pointer: Pointer) {
-      const isDark = typeof document !== 'undefined' && 
-        document.documentElement.classList.contains('dark');
       const color = generateColor();
-      color.r *= isDark ? 10 : 4;
-      color.g *= isDark ? 10 : 4;
-      color.b *= isDark ? 10 : 4;
+      color.r *= 10;
+      color.g *= 10;
+      color.b *= 10;
       const dx = 10 * (Math.random() - 0.5);
       const dy = 30 * (Math.random() - 0.5);
       splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
@@ -1383,18 +1381,10 @@ export function SmokeField({
     }
 
     function generateColor(): ColorRGB {
-      // Theme-aware smoke: detect dark/light mode
-      const isDark = typeof document !== 'undefined' && 
-        document.documentElement.classList.contains('dark');
-      const intensity = isDark ? 0.15 : 0.06;
       const c = HSVtoRGB(Math.random(), 1.0, 1.0);
-      // In light mode, skew toward cooler/lighter tones
-      if (!isDark) {
-        c.r *= 0.5; // reduce warm tones in light mode
-      }
-      c.r *= intensity;
-      c.g *= intensity;
-      c.b *= intensity;
+      c.r *= 0.15;
+      c.g *= 0.15;
+      c.b *= 0.15;
       return c;
     }
 
