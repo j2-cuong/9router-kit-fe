@@ -186,6 +186,11 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
 
         <h2 style={{ margin: '0 0 18px', fontSize: '1.3rem' }}>{title || 'Thanh toán'}</h2>
 
+        {toast && (
+          <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000, padding: '10px 20px', borderRadius: 10, background: 'rgba(0,0,0,0.85)', color: '#86efac', fontSize: '0.85rem', border: '1px solid rgba(134,239,172,.3)', backdropFilter: 'blur(8px)', pointerEvents: 'none' }}>
+            {toast}
+          </div>
+        )}
         {loading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={32} className="spin" /></div>}
 
         {error && <div style={{ padding: 14, borderRadius: 10, border: '1px solid rgba(255,100,100,.3)', color: '#ffd9df', marginBottom: 14 }}>{error}</div>}
@@ -214,15 +219,34 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
               </div>
             )}
 
-            <div style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.04)', marginBottom: 16, fontSize: '0.85rem' }}>
-              <p style={{ margin: '0 0 6px' }}>Nội dung chuyển khoản: <strong>{order.order.code}</strong></p>
-              {order.bank_account && <p style={{ margin: 0 }}>TK: {order.bank_account}</p>}
-            </div>
-
             {status === 'polling' && (
-              <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <Loader2 size={20} className="spin" style={{ marginRight: 8 }} />
-                Đang kiểm tra giao dịch...
+              <div style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.04)', marginBottom: 16 }}>
+                <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                  <Loader2 size={20} className="spin" style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                  <span style={{ verticalAlign: 'middle' }}>Đang kiểm tra giao dịch...</span>
+                </div>
+                <div style={{ display: 'grid', gap: 10, fontSize: '0.85rem' }}>
+                  {order.bank_account && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                      <span>Số tài khoản: <strong>{order.bank_account}</strong></span>
+                      <button onClick={() => copyText(order.bank_account!, 'số tài khoản')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                    <span>Số tiền: <strong>{Number(order.order.amount).toLocaleString('vi-VN')} VND</strong></span>
+                    <button onClick={() => copyText(Number(order.order.amount).toLocaleString('vi-VN') + ' VND', 'số tiền')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                    <span>Nội dung: <strong>{order.order.code}</strong></span>
+                    <button onClick={() => copyText(order.order.code, 'nội dung chuyển khoản')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
