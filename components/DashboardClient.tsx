@@ -565,7 +565,7 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
     <CheckoutModal
       open={checkoutOpen}
       onClose={() => setCheckoutOpen(false)}
-      onSuccess={() => { setCheckoutOpen(false); onRefreshDashboard(); }}
+      onSuccess={() => { setCheckoutOpen(false); onRefreshDashboard(); setTab('invoices'); }}
       packageId={checkoutPackageId}
       apiKeyId={checkoutApiKeyId}
       title={checkoutTitle}

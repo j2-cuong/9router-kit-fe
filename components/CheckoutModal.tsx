@@ -109,6 +109,7 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
 
   const [pollLog, setPollLog] = useState<string>('');
   const [apiKey, setApiKey] = useState<string>('');
+  const [toast, setToast] = useState('');
   const [copied, setCopied] = useState(false);
   const [paidExpiresAt, setPaidExpiresAt] = useState<string>('');
 
@@ -148,6 +149,18 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
         log(`Error: ${err?.message || err}`);
       }
     }, 5000);
+  }
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2000);
+  }
+
+  async function copyText(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`Đã sao chép ${label}`);
+    } catch {}
   }
 
   function copyKey() {
@@ -209,10 +222,7 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
             {status === 'polling' && (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
                 <Loader2 size={20} className="spin" style={{ marginRight: 8 }} />
-                Đang kiểm tra giao dịch... (mỗi 5 giây)
-                {pollLog && (
-                  <pre style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(0,0,0,0.4)', fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'left', maxHeight: 120, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{pollLog}</pre>
-                )}
+                Đang kiểm tra giao dịch...
               </div>
             )}
 
