@@ -212,12 +212,17 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
               </div>
             </div>
 
-            {order.qronly_base64 && (
-              <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <img src={order.qronly_base64} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
-                <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Quét QR để chuyển khoản</p>
-              </div>
-            )}
+            {order.qronly_base64 && (() => {
+              const vietqrSrc = order.bank_account
+                ? `https://img.vietqr.io/image/${order.bank_account}-qr_only.png?amount=${Math.round(Number(order.order.amount))}&addInfo=${encodeURIComponent(order.order.code)}`
+                : order.qronly_base64;
+              return (
+                <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                  <img src={vietqrSrc} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
+                  <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Quét QR để chuyển khoản</p>
+                </div>
+              );
+            })()}
 
             {status === 'polling' && (
               <div style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.04)', marginBottom: 16 }}>
