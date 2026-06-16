@@ -16,7 +16,7 @@ type OrderResponse = {
     expires_at: string;
     created_at: string;
   };
-  qronly_base64: string;
+  qronly_base64?: string;
   bank_account: string;
 };
 
@@ -212,7 +212,7 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
               </div>
             </div>
 
-            {order.qronly_base64 && (() => {
+            {(order.bank_account || order.qronly_base64) && (() => {
               const vietqrSrc = order.bank_account
                 ? `https://img.vietqr.io/image/${order.bank_account}-qr_only.png?amount=${Math.round(Number(order.order.amount))}&addInfo=${encodeURIComponent(order.order.code)}`
                 : order.qronly_base64;
