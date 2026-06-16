@@ -16,7 +16,7 @@ type OrderResponse = {
     expires_at: string;
     created_at: string;
   };
-  qr_base64: string;
+  qronly_base64: string;
   bank_account: string;
 };
 
@@ -212,9 +212,9 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
               </div>
             </div>
 
-            {order.qr_base64 && (
+            {order.qronly_base64 && (
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <img src={order.qr_base64} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
+                <img src={order.qronly_base64} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
                 <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Quét QR để chuyển khoản</p>
               </div>
             )}
