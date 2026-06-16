@@ -2,19 +2,20 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
-import { X, Clock3, CheckCircle2, Loader2, Copy, Check } from 'lucide-react';
+import { Clock3, CheckCircle2, Loader2, Copy, Check } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
 
 type OrderResponse = {
   order: {
-    id: string;
-    code: string;
-    status: string;
-    amount: string;
-    currency: string;
-    package_id: string;
-    package_name: string;
-    expires_at: string;
-    created_at: string;
+    id: string; code: string; status: string; amount: string; currency: string;
+    package_id: string; package_name: string; expires_at: string; created_at: string;
   };
   qr_base64: string;
   bank_account: string;
@@ -37,70 +38,6 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
   const [checking, setChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'polling' | 'success' | 'expired'>('idle');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (!open) {
-      setOrder(null);
-      setError('');
-      setStatus('idle');
-      setApiKey('');
-      setCopied(false);
-      setPaidExpiresAt('');
-      setPollLog('');
-      if (pollRef.current) clearInterval(pollRef.current);
-      return;
-    }
-    if (orderCode) {
-      loadExistingOrder(orderCode);
-    } else {
-      createOrder();
-    }
-  }, [open, orderCode]);
-
-  async function createOrder() {
-    setLoading(true);
-    setError('');
-    try {
-      const token = localStorage.getItem('9router_account_token') || '';
-      const body: any = {};
-      if (apiKeyId) body.api_key_id = apiKeyId;
-      else if (packageId) body.package_id = packageId;
-      const data = await api<OrderResponse>('/account/orders', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      setOrder(data);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadExistingOrder(code: string) {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await api<OrderResponse>(`/account/orders/${code}`);
-      setOrder(data);
-      if (data.order.status === 'paid') {
-        const key = await api<{ api_key?: string; expires_at?: string }>(`/account/orders/${code}`);
-        if (key.api_key) setApiKey(key.api_key);
-        if (key.expires_at) setPaidExpiresAt(key.expires_at);
-        setStatus('success');
-      } else if (data.order.status === 'expired') {
-        setStatus('expired');
-      } else {
-        startPolling();
-      }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const [pollLog, setPollLog] = useState<string>('');
   const [apiKey, setApiKey] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -113,13 +50,57 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
     setPollLog(prev => prev ? prev + '\n' + line : line);
   }
 
+  useEffect(() => {
+    if (!open) {
+      setOrder(null); setError(''); setStatus('idle');
+      setApiKey(''); setCopied(false); setPaidExpiresAt(''); setPollLog('');
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+    if (orderCode) loadExistingOrder(orderCode);
+    else createOrder();
+  }, [open, orderCode]);
+
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  async function createOrder() {
+    setLoading(true); setError('');
+    try {
+      const token = localStorage.getItem('9router_account_token') || '';
+      const body: any = {};
+      if (apiKeyId) body.api_key_id = apiKeyId;
+      else if (packageId) body.package_id = packageId;
+      const data = await api<OrderResponse>('/account/orders', {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+      });
+      setOrder(data);
+    } catch (err) { setError((err as Error).message); }
+    finally { setLoading(false); }
+  }
+
+  async function loadExistingOrder(code: string) {
+    setLoading(true); setError('');
+    try {
+      const data = await api<OrderResponse>(`/account/orders/${code}`);
+      setOrder(data);
+      if (data.order.status === 'paid') {
+        const key = await api<{ api_key?: string; expires_at?: string }>(`/account/orders/${code}`);
+        if (key.api_key) setApiKey(key.api_key);
+        if (key.expires_at) setPaidExpiresAt(key.expires_at);
+        setStatus('success');
+      } else if (data.order.status === 'expired') setStatus('expired');
+      else startPolling();
+    } catch (err) { setError((err as Error).message); }
+    finally { setLoading(false); }
+  }
+
   function startPolling() {
     if (!order) return;
-    setStatus('polling');
-    setPollLog('');
+    setStatus('polling'); setPollLog('');
     const code = order.order.code;
     const checkUrl = `/account/orders/${code}/check-payment`;
-    const statusUrl = `/account/orders/${code}`;
     log(`POST ${checkUrl}`);
     pollRef.current = setInterval(async () => {
       try {
@@ -129,18 +110,14 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
           if (pollRef.current) clearInterval(pollRef.current);
           if (data.api_key) setApiKey(data.api_key);
           if (data.expires_at) setPaidExpiresAt(data.expires_at);
-          setStatus('success');
-          log('Paid → success');
+          setStatus('success'); log('Paid → success');
         } else if (data.expired) {
           if (pollRef.current) clearInterval(pollRef.current);
-          setStatus('expired');
-          log('Expired');
+          setStatus('expired'); log('Expired');
         } else {
           log(`Not found: ${data.message || 'chưa thấy giao dịch'} → retrying`);
         }
-      } catch (err: any) {
-        log(`Error: ${err?.message || err}`);
-      }
+      } catch (err: any) { log(`Error: ${err?.message || err}`); }
     }, 5000);
   }
 
@@ -152,104 +129,124 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
     });
   }
 
-  useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, []);
-
-  if (!open) return null;
-
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}>
-      <div className="panel panel-strong" style={{ width: '100%', maxWidth: 440, maxHeight: '90vh', overflow: 'auto', padding: 28, position: 'relative' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-          <X size={20} />
-        </button>
+    <Dialog open={open} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-[460px]">
+        <DialogHeader>
+          <DialogTitle>{title || 'Thanh toán'}</DialogTitle>
+          <DialogDescription>Hoàn tất thanh toán để kích hoạt gói dịch vụ</DialogDescription>
+        </DialogHeader>
 
-        <h2 style={{ margin: '0 0 18px', fontSize: '1.3rem' }}>{title || 'Thanh toán'}</h2>
+        {loading && (
+          <div className="flex justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
-        {loading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={32} className="spin" /></div>}
-
-        {error && <div style={{ padding: 14, borderRadius: 10, border: '1px solid rgba(255,100,100,.3)', color: '#ffd9df', marginBottom: 14 }}>{error}</div>}
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {order && !loading && (
-          <>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Mã đơn</span>
-                <strong>{order.order.code}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Gói</span>
-                <strong>{order.order.package_name}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Số tiền</span>
-                <strong>{Number(order.order.amount).toLocaleString('vi-VN')} VND</strong>
-              </div>
-            </div>
+          <div className="space-y-4">
+            {/* Order Info */}
+            <Card>
+              <CardContent className="p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Mã đơn</span>
+                  <strong>{order.order.code}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gói</span>
+                  <strong>{order.order.package_name}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Số tiền</span>
+                  <strong>{Number(order.order.amount).toLocaleString('vi-VN')} VND</strong>
+                </div>
+              </CardContent>
+            </Card>
 
+            {/* QR Code */}
             {order.qr_base64 && (
-              <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <img src={order.qr_base64} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
-                <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Quét QR để chuyển khoản</p>
+              <div className="text-center">
+                <img src={order.qr_base64} alt="QR Code"
+                  className="mx-auto w-60 h-60 rounded-xl border border-border" />
+                <p className="text-xs text-muted-foreground mt-2">Quét QR để chuyển khoản</p>
               </div>
             )}
 
-            <div style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.04)', marginBottom: 16, fontSize: '0.85rem' }}>
-              <p style={{ margin: '0 0 6px' }}>Nội dung chuyển khoản: <strong>{order.order.code}</strong></p>
-              {order.bank_account && <p style={{ margin: 0 }}>TK: {order.bank_account}</p>}
-            </div>
+            {/* Bank Info */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-3 space-y-1 text-sm">
+                <p>Nội dung chuyển khoản: <strong>{order.order.code}</strong></p>
+                {order.bank_account && <p className="text-muted-foreground">TK: {order.bank_account}</p>}
+              </CardContent>
+            </Card>
 
+            <Separator />
+
+            {/* Status actions */}
             {status === 'idle' && (
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={startPolling}>
+              <Button className="w-full gap-2" onClick={startPolling}>
                 <Clock3 size={16} /> Kiểm tra giao dịch
-              </button>
+              </Button>
             )}
 
             {status === 'polling' && (
-              <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <Loader2 size={20} className="spin" style={{ marginRight: 8 }} />
-                Đang kiểm tra giao dịch... (mỗi 5 giây)
+              <div className="text-center py-4 space-y-3">
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang kiểm tra giao dịch... (mỗi 5 giây)
+                </div>
                 {pollLog && (
-                  <pre style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(0,0,0,0.4)', fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'left', maxHeight: 120, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{pollLog}</pre>
+                  <pre className="mt-2 p-3 rounded-lg bg-muted/80 text-xs text-muted-foreground text-left max-h-24 overflow-auto whitespace-pre-wrap break-all">
+                    {pollLog}
+                  </pre>
                 )}
               </div>
             )}
 
             {status === 'success' && (
-              <div style={{ padding: '12px 0' }}>
-                <div style={{ textAlign: 'center', marginBottom: 16, color: '#86efac' }}>
-                  <CheckCircle2 size={28} />
-                  <p style={{ margin: '8px 0 0', fontWeight: 600 }}>Thanh toán thành công!</p>
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <CheckCircle2 className="h-7 w-7 text-green-500 mx-auto" />
+                  <p className="font-semibold text-green-600 dark:text-green-400">Thanh toán thành công!</p>
                 </div>
                 {apiKey && (
-                  <div style={{ padding: 14, borderRadius: 10, border: '1px solid rgba(134,239,172,.25)', background: 'rgba(134,239,172,0.06)' }}>
-                    <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>API Key của bạn:</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '10px 12px' }}>
-                      <code style={{ flex: 1, fontSize: '0.8rem', wordBreak: 'break-all', color: 'var(--text-main)' }}>{apiKey}</code>
-                      <button onClick={copyKey} style={{ background: 'none', border: 'none', color: copied ? '#86efac' : 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
-                        {copied ? <Check size={16} /> : <Copy size={16} />}
-                      </button>
-                    </div>
-                    {paidExpiresAt && (
-                      <p style={{ margin: '8px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>Hết hạn: {new Date(paidExpiresAt).toLocaleString('vi-VN')}</p>
-                    )}
-                    <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} onClick={() => onSuccess(order!.order.code)}>
-                      Vào dashboard
-                    </button>
-                  </div>
+                  <Card className="border-green-500/30 bg-green-500/5">
+                    <CardContent className="p-4 space-y-3">
+                      <p className="text-xs text-muted-foreground">API Key của bạn:</p>
+                      <div className="flex items-center gap-2 bg-background rounded-lg p-3 text-sm">
+                        <code className="flex-1 break-all">{apiKey}</code>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copyKey}>
+                          {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                        </Button>
+                      </div>
+                      {paidExpiresAt && (
+                        <p className="text-xs text-muted-foreground">
+                          Hết hạn: {new Date(paidExpiresAt).toLocaleString('vi-VN')}
+                        </p>
+                      )}
+                      <Button className="w-full" onClick={() => onSuccess(order!.order.code)}>
+                        Vào dashboard
+                      </Button>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
             )}
 
             {status === 'expired' && (
-              <div style={{ padding: 14, borderRadius: 10, border: '1px solid rgba(255,180,0,.3)', background: 'rgba(60,40,0,.3)', textAlign: 'center' }}>
+              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-center text-sm">
                 Đơn hàng đã hết hạn. Vui lòng tạo đơn mới.
               </div>
             )}
-          </>
+          </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

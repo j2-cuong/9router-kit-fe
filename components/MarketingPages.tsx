@@ -1,13 +1,24 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, Menu, ShieldCheck, Sparkles, X, Zap } from 'lucide-react';
-import { LangToggle } from './LangToggle';
+import {
+  ArrowRight, Bot, Cable, Clock, Coins, Gauge, LogIn, Menu,
+  ShieldCheck, Sparkles, X, Zap
+} from 'lucide-react';
 import AuthPanel from './AuthPanel';
 import { useI18n } from '../lib/i18n';
 import { api } from '../lib/api';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from '@/components/ui/card';
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose,
+} from '@/components/ui/sheet';
+import { ThemeToggle } from './theme-toggle';
 
 type PackagePlan = {
   id: string;
@@ -32,11 +43,11 @@ const featureIcons = [Cable, Bot, Gauge, ShieldCheck] as const;
 const featureKeys = ['endpoint', 'premium', 'packages', 'telegram'] as const;
 const telegramBotUrl = 'https://t.me/api_agent_shop_8866_bot';
 
+/* ── Navigation ── */
 export function MarketingNav() {
   const { t } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 16);
@@ -45,391 +56,138 @@ export function MarketingNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
-    };
-    document.addEventListener('keydown', handleKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [isMenuOpen]);
+  const navLinks = [
+    { href: '/pricing', label: t('nav.pricing') },
+    { href: '/bulk', label: t('nav.bulk') },
+    { href: '/referral', label: t('nav.referral') },
+    { href: '/bot', label: t('nav.bot') },
+    { href: '/terms', label: t('nav.terms') },
+    { href: '/policy', label: t('nav.policy') },
+  ];
 
   return (
     <>
-      <nav className={isScrolled ? 'top-nav top-nav-scrolled' : 'top-nav'}>
-        <Link className="nav-logo" href="/">AzGate</Link>
-        <div className="nav-actions">
-        <Link className="nav-link" href="/pricing">{t('nav.pricing')}</Link>
-        <Link className="nav-link" href="/bulk">{t('nav.bulk')}</Link>
-        <Link className="nav-link" href="/referral">{t('nav.referral')}</Link>
-        <Link className="nav-link" href="/bot">{t('nav.bot')}</Link>
-        <Link className="nav-link" href="/terms">{t('nav.terms')}</Link>
-        <Link className="nav-link" href="/policy">{t('nav.policy')}</Link>
-        <LangToggle />
-        <button type="button" className="btn btn-sm" onClick={() => setIsAuthOpen(true)}>
-          <LogIn size={16} /> {t('nav.login')}
-        </button>
+      <nav
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 flex items-center justify-between',
+          'px-4 md:px-8 lg:px-14 h-[72px]',
+          'transition-all duration-300',
+          isScrolled
+            ? 'bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-sm'
+            : 'bg-transparent'
+        )}
+      >
+        {/* Logo */}
+        <Link
+          href="/"
+          className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-brand-cyan bg-clip-text text-transparent"
+        >
+          AzGate
+        </Link>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
-        <button type="button" className="nav-hamburger" onClick={() => setIsMenuOpen(true)} aria-label="Open menu">
-          <Menu size={22} />
-        </button>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAuthOpen(true)}
+            className="hidden md:inline-flex"
+          >
+            <LogIn className="mr-1.5 h-4 w-4" />
+            {t('nav.login')}
+          </Button>
+
+          {/* Mobile Sheet */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-lg">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+              <SheetHeader>
+                <SheetTitle className="bg-gradient-to-r from-foreground to-brand-cyan bg-clip-text text-transparent">
+                  AzGate
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-1 mt-6">
+                {navLinks.map((link) => (
+                  <SheetClose key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className="flex items-center px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+              </div>
+              <div className="mt-6 px-4">
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setIsAuthOpen(true);
+                    document.querySelector<HTMLElement>('[data-state="open"]')?.click();
+                  }}
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
+                  {t('nav.login')}
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </nav>
-      {isMenuOpen && (
-        <div className="nav-mobile-overlay" onClick={() => setIsMenuOpen(false)}>
-          <div className="nav-mobile-drawer" onClick={e => e.stopPropagation()}>
-            <div className="nav-mobile-header">
-              <span className="nav-mobile-title">Menu</span>
-              <button type="button" className="nav-mobile-close" onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
-                <X size={22} />
-              </button>
-            </div>
-            <div className="nav-mobile-links">
-              <Link className="nav-mobile-link" href="/pricing" onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</Link>
-              <Link className="nav-mobile-link" href="/bulk" onClick={() => setIsMenuOpen(false)}>{t('nav.bulk')}</Link>
-              <Link className="nav-mobile-link" href="/referral" onClick={() => setIsMenuOpen(false)}>{t('nav.referral')}</Link>
-              <Link className="nav-mobile-link" href="/bot" onClick={() => setIsMenuOpen(false)}>{t('nav.bot')}</Link>
-              <Link className="nav-mobile-link" href="/terms" onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</Link>
-              <Link className="nav-mobile-link" href="/policy" onClick={() => setIsMenuOpen(false)}>{t('nav.policy')}</Link>
-            </div>
-          </div>
-        </div>
-      )}
+
       {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
     </>
   );
 }
 
-export function HomeMarketingPage() {
-  const { t } = useI18n();
-  const models = modelKeys.map((key, index) => ({
-    name: modelNames[index],
-    meta: t(`models.${key}.meta`),
-    tag: t(`models.${modelTags[index]}`),
-  }));
-  const features = featureKeys.map((key, index) => ({
-    icon: featureIcons[index],
-    title: t(`features.${key}.title`),
-    text: t(`features.${key}.text`),
-  }));
-
-  return (
-    <main className="shell-grid">
-      <JsonLd />
-      <MarketingNav />
-      <section className="hero route-hero">
-        <div className="noise" />
-        <div className="hero-sheen" />
-        <div className="hero-content route-home-content">
-          <div>
-            <span className="floating-note"><Sparkles size={16} /> {t('hero.badge')}</span>
-            <p className="eyebrow">{t('hero.eyebrow')}</p>
-            <h1 className="hero-title"><span className="glow">{t('hero.title')}</span></h1>
-            <p className="hero-subtitle">{t('hero.subtitle')}</p>
-            <div className="hero-actions">
-              <AuthCtaButton iconSize={18} />
-              <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
-            </div>
-          </div>
-
-          <div className="route-card-grid" aria-label="9router pages">
-            <RouteCard href="/pricing" title={t('routes.pricing.title')} text={t('routes.pricing.text')} icon={<Coins size={20} />} />
-            <RouteCard href="/bulk" title={t('routes.bulk.title')} text={t('routes.bulk.text')} icon={<Gauge size={20} />} />
-            <RouteCard href="/referral" title={t('routes.referral.title')} text={t('routes.referral.text')} icon={<Sparkles size={20} />} />
-            <RouteCard href="/bot" title={t('routes.bot.title')} text={t('routes.bot.text')} icon={<Bot size={20} />} />
-          </div>
-
-          <div className="model-strip" aria-label="Supported premium model cards">
-            {models.map(model => (
-              <article className="model-card" key={model.name}>
-                <span className="model-tag">{model.tag}</span>
-                <h2 className="model-name">{model.name}</h2>
-                <p className="model-meta">{model.meta}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="section-grid route-feature-grid">
-            {features.map(({ icon: Icon, title, text }) => (
-              <article className="panel metric" key={title}>
-                <Icon color="var(--cyan)" size={26} />
-                <h2>{title}</h2>
-                <p className="muted">{text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-export function PricingPage() {
-  const { t } = useI18n();
-  const [packages, setPackages] = useState<PackagePlan[]>([]);
-  const [isLoadingPackages, setIsLoadingPackages] = useState(true);
-
-  useEffect(() => {
-    api<{ items: PackagePlan[] }>('/account/packages')
-      .then(data => setPackages(data.items))
-      .catch(() => setPackages([]))
-      .finally(() => setIsLoadingPackages(false));
-  }, []);
-
-  const visiblePackages = useMemo(() => packages.filter(plan => !isDefaultPackage(plan)), [packages]);
-  const hourlyPlans = useMemo(() => visiblePackages.filter(isHourlyPackage), [visiblePackages]);
-  const tokenPlans = useMemo(() => visiblePackages.filter(p => isTokenPackage(p) && !isWeeklyPackage(p)), [visiblePackages]);
-  const weekPlans = useMemo(() => visiblePackages.filter(isWeeklyPackage), [visiblePackages]);
-
-  return (
-    <RouteShell>
-      <section className="section route-page-section">
-        <div className="pricing-header">
-          <span className="floating-note"><Coins size={16} /> {t('pricing.badge')}</span>
-          <h1>{t('pricing.title')}</h1>
-          <p className="muted route-lead">{t('pricing.lead')}</p>
-        </div>
-
-        <div className="pricing-grid pricing-grid-3">
-          <div className="pricing-card pricing-card-hour">
-            <div className="pricing-card-head">
-              <Clock size={20} color="var(--cyan)" />
-              <h2>{t('pricing.hourly')}</h2>
-              <p className="muted">{t('pricing.hourlyDesc')}</p>
-            </div>
-            <div className="pricing-card-body">
-              {isLoadingPackages && <PricingSkeleton rows={3} />}
-              {!isLoadingPackages && hourlyPlans.length === 0 && <p className="muted">{t('pricing.noPlans')}</p>}
-              {hourlyPlans.map((plan, index) => (
-                <div className={index === 2 ? 'pricing-row pricing-best' : 'pricing-row'} key={plan.id}>
-                  <span className="pricing-price">{formatCompactVND(plan.price)}</span>
-                  <span className="pricing-meta">{formatPlanDuration(plan, t)}</span>
-                  <span className={index === 2 ? 'pricing-badge badge-best' : 'pricing-badge'}>{index === 2 ? t('pricing.bestChoice') : t('pricing.unlimited')}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pricing-card pricing-card-token">
-            <div className="pricing-card-head">
-              <Zap size={20} color="var(--violet)" />
-              <h2>{t('pricing.tokenBased')}</h2>
-              <p className="muted">{t('pricing.tokenBasedDesc')}</p>
-            </div>
-            <div className="pricing-card-body">
-              <div className="pricing-table">
-                <div className="pricing-table-head">
-                  <span>{t('pricing.token')}</span>
-                  <span>{t('pricing.price')}</span>
-                  <span>{t('pricing.duration')}</span>
-                </div>
-                {isLoadingPackages && <PricingTableSkeleton rows={4} />}
-                {!isLoadingPackages && tokenPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noPlans')}</span><span>-</span><span>-</span></div>}
-                {tokenPlans.map(plan => (
-                  <div className="pricing-table-row" key={plan.id}>
-                    <span>{formatToken(effectiveTokenLimit(plan))}</span>
-                    <span className="pricing-price">{formatCompactVND(plan.price)}</span>
-                    <span>{formatPlanDuration(plan, t)}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="pricing-table-note muted">Dùng hết token sẽ hết quyền truy cập. Mua thêm quota để tiếp tục.</p>
-            </div>
-          </div>
-
-          <div className="pricing-card pricing-card-week">
-            <div className="pricing-card-head">
-              <Coins size={20} color="#f59e0b" />
-              <h2>{t('pricing.weekly')}</h2>
-              <p className="muted">{t('pricing.weeklyDesc')}</p>
-            </div>
-            <div className="pricing-card-body">
-              <div className="pricing-table">
-                <div className="pricing-table-head">
-                  <span>{t('pricing.token')}</span>
-                  <span>{t('pricing.price')}</span>
-                  <span>{t('pricing.duration')}</span>
-                </div>
-                {isLoadingPackages && <PricingTableSkeleton rows={3} />}
-                {!isLoadingPackages && weekPlans.length === 0 && <div className="pricing-table-row"><span>{t('pricing.noWeekPlans')}</span><span>-</span><span>-</span></div>}
-                {weekPlans.map(plan => (
-                  <div className="pricing-table-row" key={plan.id}>
-                    <span>{formatToken(plan.token_limit)}<span className="muted">/ngày</span></span>
-                    <span className="pricing-price">{formatCompactVND(plan.price)}</span>
-                    <span>
-                      {plan.duration_days > 0 ? `${plan.duration_days} ${plan.duration_days === 1 ? 'ngày' : 'ngày'}` : '-'}
-                      {plan.reset_after_hours ? <span className="pricing-badge badge-reset">Reset {plan.reset_after_hours}h</span> : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="pricing-table-note muted">Dùng hết token trong ngày sẽ hết quyền truy cập. Token reset mỗi {weekPlans[0]?.reset_after_hours || 5}h.</p>
-            </div>
-          </div>
-        </div>
-
-        <p className="pricing-note muted">{t('pricing.note')}</p>
-        <div className="pricing-cta">
-          <Link className="btn btn-primary" href="/bot">{t('pricing.buyNow')} <ArrowRight size={16} /></Link>
-        </div>
-      </section>
-    </RouteShell>
-  );
-}
-
-export function BulkPage() {
-  const { t } = useI18n();
-  return (
-    <RouteShell>
-      <InfoHeader badge={t('bulk.badge')} title={t('bulk.title')} lead={t('bulk.lead')} icon={<Coins size={16} />} />
-      <div className="section info-grid">
-        <InfoCard title={t('bulk.cards.milestone.title')} text={t('bulk.cards.milestone.text')} />
-        <InfoCard title={t('bulk.cards.auto.title')} text={t('bulk.cards.auto.text')} />
-      </div>
-    </RouteShell>
-  );
-}
-
-export function ReferralPage() {
-  const { t } = useI18n();
-  return (
-    <RouteShell>
-      <InfoHeader badge={t('referral.badge')} title={t('referral.title')} lead={t('referral.lead')} icon={<Sparkles size={16} />} />
-      <div className="section info-grid three">
-        <InfoCard title={t('referral.steps.register.title')} text={t('referral.steps.register.text')} />
-        <InfoCard title={t('referral.steps.reward.title')} text={t('referral.steps.reward.text')} />
-        <InfoCard title={t('referral.steps.redeem.title')} text={t('referral.steps.redeem.text')} />
-      </div>
-    </RouteShell>
-  );
-}
-
-export function BotPage() {
-  const { t } = useI18n();
-  return (
-    <RouteShell>
-      <section className="section route-page-section">
-        <div className="section-grid bot-route-grid">
-          <article className="panel metric">
-            <span className="floating-note"><Bot size={16} /> {t('botQr.badge')}</span>
-            <h1>{t('botQr.title')}</h1>
-            <p className="muted">{t('botQr.text')}</p>
-            <div className="hero-actions">
-              <a className="btn btn-primary" href={telegramBotUrl} target="_blank" rel="noopener noreferrer">{t('botQr.badge')} <ArrowRight size={16} /></a>
-              <Link className="btn" href="/pricing">{t('hero.ctaPricing')}</Link>
-            </div>
-          </article>
-          <aside className="panel metric bot-qr-panel">
-            <Image src="/bot.png" alt={t('botQr.imageAlt')} width={320} height={320} priority />
-          </aside>
-        </div>
-      </section>
-    </RouteShell>
-  );
-}
-
-export function TermsPage() {
-  const { t } = useI18n();
-  return <LegalPage badge={t('terms.badge')} title={t('terms.title')} items={['service', 'payment', 'fairUse', 'rewards'].map(key => t(`terms.items.${key}`))} />;
-}
-
-export function PolicyPage() {
-  const { t } = useI18n();
-  return <LegalPage badge={t('policy.badge')} title={t('policy.title')} items={['data', 'keys', 'abuse', 'refund'].map(key => t(`policy.items.${key}`))} />;
-}
-
-function PricingSkeleton({ rows }: { rows: number }) {
-  return Array.from({ length: rows }, (_, index) => (
-    <div className="pricing-row pricing-row-skeleton" key={index}>
-      <span className="skeleton-line skeleton-price" />
-      <span className="skeleton-line skeleton-meta" />
-      <span className="skeleton-line skeleton-badge" />
-    </div>
-  ));
-}
-
-function PricingTableSkeleton({ rows }: { rows: number }) {
-  return Array.from({ length: rows }, (_, index) => (
-    <div className="pricing-table-row pricing-row-skeleton" key={index}>
-      <span className="skeleton-line" />
-      <span className="skeleton-line" />
-      <span className="skeleton-line" />
-    </div>
-  ));
-}
-
-function RouteShell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="shell-grid route-shell">
-      <MarketingNav />
-      <div className="noise" />
-      <div className="hero-sheen" />
-      {children}
-    </main>
-  );
-}
-
-function InfoHeader({ badge, title, lead, icon }: { badge: string; title: string; lead: string; icon: React.ReactNode }) {
-  return (
-    <section className="section route-page-section info-section">
-      <span className="floating-note">{icon} {badge}</span>
-      <h1>{title}</h1>
-      <p className="muted route-lead">{lead}</p>
-    </section>
-  );
-}
-
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <article className="panel metric">
-      <h2>{title}</h2>
-      <p className="muted">{text}</p>
-    </article>
-  );
-}
-
-function LegalPage({ badge, title, items }: { badge: string; title: string; items: string[] }) {
-  return (
-    <RouteShell>
-      <section className="section route-page-section info-section legal-section">
-        <span className="floating-note"><ShieldCheck size={16} /> {badge}</span>
-        <h1>{title}</h1>
-        <div className="panel metric legal-copy">
-          {items.map(item => <p key={item}>{item}</p>)}
-        </div>
-      </section>
-    </RouteShell>
-  );
-}
-
-
+/* ── Auth CTA Button ── */
 function AuthCtaButton({ iconSize }: { iconSize: number }) {
   const { t } = useI18n();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-
   return (
     <>
-      <button type="button" className="btn btn-primary" onClick={() => setIsAuthOpen(true)}>
+      <Button size="lg" onClick={() => setIsAuthOpen(true)} className="gap-2">
         {t('hero.cta')} <ArrowRight size={iconSize} />
-      </button>
+      </Button>
       {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
     </>
   );
 }
 
+/* ── Route Card ── */
 function RouteCard({ href, title, text, icon }: { href: string; title: string; text: string; icon: React.ReactNode }) {
   return (
-    <Link className="panel metric route-card" href={href}>
-      <span>{icon}</span>
-      <strong>{title}</strong>
-      <p className="muted">{text}</p>
+    <Link href={href}>
+      <Card className="h-full hover:-translate-y-1 transition-all duration-200 hover:border-brand-cyan/30 hover:shadow-lg hover:shadow-brand-cyan/5 cursor-pointer">
+        <CardContent className="p-5 flex flex-col gap-3">
+          <span className="text-brand-cyan">{icon}</span>
+          <CardTitle className="text-base">{title}</CardTitle>
+          <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+        </CardContent>
+      </Card>
     </Link>
   );
 }
 
+/* ── JSON-LD ── */
 function JsonLd() {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -444,6 +202,378 @@ function JsonLd() {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />;
 }
 
+/* ── Shells ── */
+function RouteShell({ hero, children }: { hero?: boolean; children: React.ReactNode }) {
+  return (
+    <main className="shell-grid">
+      {children}
+    </main>
+  );
+}
+
+function LoadingShell() {
+  return (
+    <RouteShell>
+      <div className="min-h-screen pt-[84px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <p className="text-sm">Loading...</p>
+        </div>
+      </div>
+    </RouteShell>
+  );
+}
+
+function NotFoundShell({ onRetry }: { onRetry?: () => void }) {
+  return (
+    <RouteShell>
+      <div className="min-h-screen pt-[84px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center max-w-sm">
+          <ShieldCheck className="h-12 w-12 text-muted-foreground/40" />
+          <h2 className="text-xl font-semibold">Not found</h2>
+          <p className="text-sm text-muted-foreground">The requested content could not be loaded.</p>
+          {onRetry && <Button variant="outline" onClick={onRetry}>Retry</Button>}
+        </div>
+      </div>
+    </RouteShell>
+  );
+}
+
+function LegalPage({ badge, title, items }: { badge: string; title: string; items: string[] }) {
+  return (
+    <RouteShell>
+      <div className="min-h-screen pt-[84px] max-w-3xl mx-auto px-4 py-20">
+        <Badge variant="outline" className="mb-4 gap-1.5">
+          <ShieldCheck size={14} /> {badge}
+        </Badge>
+        <h1 className="text-3xl font-bold mb-8">{title}</h1>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            {items.map((item, i) => <p key={i} className="text-muted-foreground leading-relaxed">{item}</p>)}
+          </CardContent>
+        </Card>
+      </div>
+    </RouteShell>
+  );
+}
+
+/* ── Home Page ── */
+export function HomeMarketingPage() {
+  const { t } = useI18n();
+  const models = modelKeys.map((key, index) => ({
+    name: modelNames[index],
+    meta: t(`models.${key}.meta`),
+    tag: t(`models.${modelTags[index]}`),
+  }));
+  const features = featureKeys.map((key, index) => ({
+    icon: featureIcons[index],
+    title: t(`features.${key}.title`),
+    text: t(`features.${key}.text`),
+  }));
+
+  return (
+    <RouteShell>
+      <JsonLd />
+      <MarketingNav />
+
+      <section className="relative min-h-screen overflow-hidden">
+        <div className="noise" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pt-32 pb-20 md:pt-40">
+          {/* Hero */}
+          <div className="max-w-3xl mb-16">
+            <Badge variant="outline" className="mb-6 gap-1.5 px-3 py-1.5 text-sm">
+              <Sparkles size={16} /> {t('hero.badge')}
+            </Badge>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">{t('hero.eyebrow')}</p>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+              <span className="bg-gradient-to-r from-foreground via-brand-cyan to-brand-violet to-foreground bg-clip-text text-transparent animate-[shimmer_9s_linear_infinite] bg-[length:220%_100%]">
+                {t('hero.title')}
+              </span>
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-prose mb-8">
+              {t('hero.subtitle')}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <AuthCtaButton iconSize={18} />
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/pricing">{t('hero.ctaPricing')}</Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Route Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            <RouteCard href="/pricing" title={t('routes.pricing.title')} text={t('routes.pricing.text')} icon={<Coins size={20} />} />
+            <RouteCard href="/bulk" title={t('routes.bulk.title')} text={t('routes.bulk.text')} icon={<Gauge size={20} />} />
+            <RouteCard href="/referral" title={t('routes.referral.title')} text={t('routes.referral.text')} icon={<Sparkles size={20} />} />
+            <RouteCard href="/bot" title={t('routes.bot.title')} text={t('routes.bot.text')} icon={<Bot size={20} />} />
+          </div>
+
+          {/* Model Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            {models.map((model, i) => (
+              <Card key={model.name} className="relative overflow-hidden group">
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(126,232,255,0.08), rgba(188,140,255,0.06), transparent)',
+                    animation: `cardSweep 4s ease-in-out ${i * 1}s infinite`,
+                  }}
+                />
+                <CardHeader>
+                  <Badge variant="secondary" className="absolute top-3 right-3">{model.tag}</Badge>
+                  <CardTitle className="text-base">{model.name}</CardTitle>
+                  <CardDescription className="text-sm">{model.meta}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+            {features.map((feat) => {
+              const Icon = feat.icon;
+              return (
+                <Card key={feat.title} className="hover:border-brand-cyan/20 transition-colors">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-cyan/10 text-brand-cyan">
+                        <Icon size={20} />
+                      </div>
+                      <CardTitle className="text-lg">{feat.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feat.text}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Usage Section */}
+          <Card className="mb-16">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap size={20} className="text-brand-cyan" />
+                {t('usage.title')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">{t('usage.text')}</p>
+            </CardContent>
+          </Card>
+
+          {/* CTA */}
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">{t('cta.title')}</h2>
+            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">{t('cta.text')}</p>
+            <div className="flex justify-center gap-3">
+              <AuthCtaButton iconSize={18} />
+              <Button variant="outline" size="lg" asChild>
+                <Link href={telegramBotUrl} target="_blank" rel="noreferrer">
+                  <Bot className="mr-2 h-5 w-5" /> {t('cta.telegram')}
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <footer className="border-t border-border pt-8 mt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+              <p>© 2026 AzGate. All rights reserved.</p>
+              <div className="flex gap-6">
+                <Link href="/terms" className="hover:text-foreground transition-colors">{t('nav.terms')}</Link>
+                <Link href="/policy" className="hover:text-foreground transition-colors">{t('nav.policy')}</Link>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </section>
+    </RouteShell>
+  );
+}
+
+/* ── Pricing Page ── */
+export function PricingContent() {
+  const { t, lang } = useI18n();
+  const [plans, setPlans] = useState<PackagePlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  const fetchPlans = useMemo(() => async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await api<PackagePlan[]>("/account/packages");
+      setPlans(data.filter(p => !isDefaultPackage(p)));
+    } catch (e: any) {
+      setError(e?.message || t('pricing.loadError'));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => { fetchPlans(); }, [fetchPlans]);
+
+  const { tokenPlans, hourlyPlans, weeklyPlans } = useMemo(() => {
+    const token: PackagePlan[] = [];
+    const hourly: PackagePlan[] = [];
+    const weekly: PackagePlan[] = [];
+    for (const p of plans) {
+      if (isWeeklyPackage(p)) weekly.push(p);
+      else if (isHourlyPackage(p)) hourly.push(p);
+      else token.push(p);
+    }
+    return {
+      tokenPlans: token.sort((a, b) => Number(a.price) - Number(b.price)),
+      hourlyPlans: hourly.sort((a, b) => Number(a.price) - Number(b.price)),
+      weeklyPlans: weekly.sort((a, b) => Number(a.price) - Number(b.price)),
+    };
+  }, [plans]);
+
+  if (loading) return <LoadingShell />;
+  if (error) return <NotFoundShell onRetry={fetchPlans} />;
+
+  return (
+    <RouteShell>
+      <MarketingNav />
+      <div className="min-h-screen pt-[84px] max-w-7xl mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <Badge variant="outline" className="mb-4 gap-1.5">
+            <Coins size={14} /> {t('pricing.badge')}
+          </Badge>
+          <h1 className="text-3xl font-bold mb-3">{t('pricing.title')}</h1>
+          <p className="text-muted-foreground max-w-xl mx-auto">{t('pricing.subtitle')}</p>
+        </div>
+
+        {/* Token Plans */}
+        {tokenPlans.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Zap size={20} className="text-brand-cyan" />
+              {t('pricing.payPerToken')}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {tokenPlans.map(plan => (
+                <PricingCard key={plan.id} plan={plan} onBuy={() => setIsAuthOpen(true)} t={t} lang={lang} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Hourly Plans */}
+        {hourlyPlans.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Clock size={20} className="text-brand-cyan" />
+              {t('pricing.unlimited')}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {hourlyPlans.map(plan => (
+                <PricingCard key={plan.id} plan={plan} onBuy={() => setIsAuthOpen(true)} t={t} lang={lang} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Weekly Plans */}
+        {weeklyPlans.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Clock size={20} className="text-brand-cyan" />
+              Weekly
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {weeklyPlans.map(plan => (
+                <PricingCard key={plan.id} plan={plan} onBuy={() => setIsAuthOpen(true)} t={t} lang={lang} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {plans.length === 0 && (
+          <NotFoundShell />
+        )}
+      </div>
+      {isAuthOpen && <AuthPanel variant="modal" onClose={() => setIsAuthOpen(false)} />}
+    </RouteShell>
+  );
+}
+
+/* ── Pricing Card ── */
+function PricingCard({ plan, onBuy, t, lang }: {
+  plan: PackagePlan;
+  onBuy: () => void;
+  t: (key: string) => string;
+  lang: string;
+}) {
+  const isToken = isTokenPackage(plan);
+  const isHourly = isHourlyPackage(plan);
+  const tokens = effectiveTokenLimit(plan);
+  const minutes = plan.duration_seconds > 0 ? Math.round(plan.duration_seconds / 60) : 0;
+  const isPopular = plan.duration_days >= 28 || tokens >= 10_000_000 || minutes >= 1440;
+
+  return (
+    <Card className={cn(
+      'relative flex flex-col',
+      isPopular && 'border-brand-cyan/40 shadow-lg shadow-brand-cyan/5'
+    )}>
+      {isPopular && (
+        <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-brand-cyan text-brand-cyan-dark hover:bg-brand-cyan">
+          {t('pricing.popular')}
+        </Badge>
+      )}
+      <CardHeader>
+        <div className="flex items-baseline justify-between gap-2">
+          <CardTitle className="text-lg">{plan.name}</CardTitle>
+          <span className="text-lg font-bold">
+            {formatCompactVND(plan.price)}
+            <span className="text-xs font-normal text-muted-foreground ml-0.5">đ</span>
+          </span>
+        </div>
+        {plan.description && (
+          <CardDescription className="text-xs leading-relaxed">{plan.description}</CardDescription>
+        )}
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col gap-3">
+        <div className="space-y-1.5 text-sm">
+          {isToken && tokens > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tokens</span>
+              <span className="font-medium">{formatToken(tokens)}</span>
+            </div>
+          )}
+          {isHourly && minutes > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Duration</span>
+              <span className="font-medium">{minutes} min</span>
+            </div>
+          )}
+          {plan.duration_days > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Valid</span>
+              <span className="font-medium">{plan.duration_days}d</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t('pricing.duration')}</span>
+            <span className="font-medium">{formatPlanDuration(plan, t)}</span>
+          </div>
+        </div>
+        <div className="mt-auto pt-4">
+          <Button className="w-full" variant={isPopular ? 'default' : 'outline'} onClick={onBuy}>
+            {t('pricing.buyNow')}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ── Helper functions ── */
 function isDefaultPackage(plan: PackagePlan) {
   const code = String(plan.code || '').trim().toLowerCase();
   const name = String(plan.name || '').trim().toLowerCase();
@@ -511,4 +641,78 @@ function inferHours(plan: PackagePlan) {
   if (!match) return 0;
   const hours = Number(match[1].replace(',', '.'));
   return Number.isFinite(hours) ? hours : 0;
+}
+
+/* ── Page export wrappers ── */
+
+export function PricingPage() {
+  return <PricingContent />;
+}
+
+export function BulkPage() {
+  const { t } = useI18n();
+  return (
+    <RouteShell>
+      <MarketingNav />
+      <div className="min-h-screen pt-[84px] max-w-3xl mx-auto px-4 py-20">
+        <Badge variant="outline" className="mb-4 gap-1.5"><Gauge size={14} /> {t('bulk.badge')}</Badge>
+        <h1 className="text-3xl font-bold mb-6">{t('bulk.title')}</h1>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-muted-foreground leading-relaxed">{t('bulk.text')}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </RouteShell>
+  );
+}
+
+export function ReferralPage() {
+  const { t } = useI18n();
+  return (
+    <RouteShell>
+      <MarketingNav />
+      <div className="min-h-screen pt-[84px] max-w-3xl mx-auto px-4 py-20">
+        <Badge variant="outline" className="mb-4 gap-1.5"><Sparkles size={14} /> {t('referral.badge')}</Badge>
+        <h1 className="text-3xl font-bold mb-6">{t('referral.title')}</h1>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-muted-foreground leading-relaxed">{t('referral.text')}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </RouteShell>
+  );
+}
+
+export function BotPage() {
+  const { t } = useI18n();
+  return (
+    <RouteShell>
+      <MarketingNav />
+      <div className="min-h-screen pt-[84px] max-w-3xl mx-auto px-4 py-20">
+        <Badge variant="outline" className="mb-4 gap-1.5"><Bot size={14} /> {t('botQr.badge')}</Badge>
+        <h1 className="text-3xl font-bold mb-6">{t('botQr.title')}</h1>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-muted-foreground leading-relaxed">{t('botQr.text')}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </RouteShell>
+  );
+}
+
+export function TermsPage() {
+  const { t } = useI18n();
+  const rawItems: Record<string, string> = t('terms.items') as unknown as Record<string, string>;
+  const items = Object.values(rawItems || {});
+  return <LegalPage badge={t('terms.badge')} title={t('terms.title')} items={items} />;
+}
+
+export function PolicyPage() {
+  const { t } = useI18n();
+  const rawItems: Record<string, string> = t('policy.items') as unknown as Record<string, string>;
+  const items = Object.values(rawItems || {});
+  return <LegalPage badge={t('policy.badge')} title={t('policy.title')} items={items} />;
 }
