@@ -9,6 +9,8 @@ import { useI18n } from '../lib/i18n';
 import { getClientDeviceInfo, type ClientDeviceInfo } from '../lib/device';
 import { CheckoutModal } from './CheckoutModal';
 
+const telegramBotUrl = 'https://t.me/api_agent_shop_8866_bot';
+
 type LoginResult = {
   access_token: string;
   token_type: string;
@@ -88,6 +90,7 @@ type AccountAPIKey = {
   created_at: string;
   reset_at?: string;
   package_type?: string;
+  order_code?: string;
 };
 
 type PromoRecord = {
@@ -492,8 +495,10 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
         </div>
       {approvedKeys.length > 0 && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(74,222,128,.28)' }}><Bell size={18} color="#86efac" /> <strong>{t('dashboard.approvedNotice')}</strong><p className="muted" style={{ margin: '8px 0 0' }}>{t('dashboard.approvedText')}</p></div>}
       {activationKeys.length > 0 && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(255,196,87,.32)' }}><Bell size={18} color="#facc15" /> <strong>API key can kich hoat tren web</strong><p className="muted" style={{ margin: '8px 0 0' }}>Copy key trong danh sach API key, dang xuat, roi dang nhap bang API key tren dung may cua ban de kich hoat thiet bi. Khong kich hoat ho nguoi khac. Thoi han key van tinh tu luc duoc cap/duyet.</p></div>}
-      {pendingKeys.length > 0 && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(125,211,252,.28)' }}><Bell size={18} color="var(--cyan)" /> <strong>{t('dashboard.pendingNotice')}</strong><p className="muted" style={{ margin: '8px 0 0' }}>{t('dashboard.pendingText')}</p></div>}
       {error && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(255,100,100,.3)', color: '#ffd9df' }}>{error}</div>}
+
+      {pendingKeys.length > 0 && <div className="panel metric" style={{ marginBottom: 18, borderColor: 'rgba(125,211,252,.28)' }}><Bell size={18} color="var(--cyan)" /> <strong>{t('dashboard.pendingNotice')}</strong><p className="muted" style={{ margin: '8px 0 0' }}>{t('dashboard.pendingText')}</p></div>}
+
       <div className="section-grid" style={{ marginBottom: 20 }}>
         <article className="panel metric" style={{ gridColumn: 'span 6' }}>
           <h2 style={{ marginTop: 0 }}>{t('dashboard.requestKey')}</h2>

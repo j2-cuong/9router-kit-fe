@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
-import { X, Clock3, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Clock3, CheckCircle2, Loader2, Copy, Check } from 'lucide-react';
 
 type OrderResponse = {
   order: {
@@ -26,10 +26,11 @@ type CheckoutModalProps = {
   onSuccess: (orderCode: string) => void;
   packageId?: string;
   apiKeyId?: string;
+  orderCode?: string;
   title?: string;
 };
 
-export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, title }: CheckoutModalProps) {
+export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, orderCode, title }: CheckoutModalProps) {
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,11 +43,19 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, t
       setOrder(null);
       setError('');
       setStatus('idle');
+      setApiKey('');
+      setCopied(false);
+      setPaidExpiresAt('');
+      setPollLog('');
       if (pollRef.current) clearInterval(pollRef.current);
       return;
     }
-    createOrder();
-  }, [open]);
+    if (orderCode) {
+      loadExistingOrder(orderCode);
+    } else {
+      createOrder();
+    }
+  }, [open, orderCode]);
 
   async function createOrder() {
     setLoading(true);
@@ -69,24 +78,78 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, t
     }
   }
 
+  async function loadExistingOrder(code: string) {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await api<OrderResponse>(`/account/orders/${code}`);
+      setOrder(data);
+      if (data.order.status === 'paid') {
+        const key = await api<{ api_key?: string; expires_at?: string }>(`/account/orders/${code}`);
+        if (key.api_key) setApiKey(key.api_key);
+        if (key.expires_at) setPaidExpiresAt(key.expires_at);
+        setStatus('success');
+      } else if (data.order.status === 'expired') {
+        setStatus('expired');
+      } else {
+        startPolling();
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const [pollLog, setPollLog] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+  const [paidExpiresAt, setPaidExpiresAt] = useState<string>('');
+
+  function log(msg: string) {
+    const ts = new Date().toLocaleTimeString('vi-VN');
+    const line = `[${ts}] ${msg}`;
+    console.log('[CheckoutModal]', line);
+    setPollLog(prev => prev ? prev + '\n' + line : line);
+  }
+
   function startPolling() {
     if (!order) return;
     setStatus('polling');
+    setPollLog('');
+    const code = order.order.code;
+    const checkUrl = `/account/orders/${code}/check-payment`;
+    const statusUrl = `/account/orders/${code}`;
+    log(`POST ${checkUrl}`);
     pollRef.current = setInterval(async () => {
       try {
-        const data = await api<{ order: { status: string } }>(`/account/orders/${order.order.code}`);
-        if (data.order.status === 'paid') {
+        const data = await api<{ found: boolean; paid?: boolean; expired?: boolean; api_key?: string; expires_at?: string; message?: string }>(checkUrl, { method: 'POST' });
+        log(`Response: ${JSON.stringify(data)}`);
+        if (data.paid) {
           if (pollRef.current) clearInterval(pollRef.current);
+          if (data.api_key) setApiKey(data.api_key);
+          if (data.expires_at) setPaidExpiresAt(data.expires_at);
           setStatus('success');
-          setTimeout(() => onSuccess(order.order.code), 2000);
-        } else if (data.order.status === 'expired') {
+          log('Paid → success');
+        } else if (data.expired) {
           if (pollRef.current) clearInterval(pollRef.current);
           setStatus('expired');
+          log('Expired');
+        } else {
+          log(`Not found: ${data.message || 'chưa thấy giao dịch'} → retrying`);
         }
-      } catch {
-        // ignore polling errors
+      } catch (err: any) {
+        log(`Error: ${err?.message || err}`);
       }
     }, 5000);
+  }
+
+  function copyKey() {
+    if (!apiKey) return;
+    navigator.clipboard.writeText(apiKey).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   useEffect(() => {
@@ -127,7 +190,7 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, t
 
             {order.qr_base64 && (
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <img src={`data:image/png;base64,${order.qr_base64}`} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
+                <img src={order.qr_base64} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
                 <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Quét QR để chuyển khoản</p>
               </div>
             )}
@@ -146,14 +209,36 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, t
             {status === 'polling' && (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
                 <Loader2 size={20} className="spin" style={{ marginRight: 8 }} />
-                Đang kiểm tra... (mỗi 5 giây)
+                Đang kiểm tra giao dịch... (mỗi 5 giây)
+                {pollLog && (
+                  <pre style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(0,0,0,0.4)', fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'left', maxHeight: 120, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{pollLog}</pre>
+                )}
               </div>
             )}
 
             {status === 'success' && (
-              <div style={{ textAlign: 'center', padding: '12px 0', color: '#86efac' }}>
-                <CheckCircle2 size={24} style={{ marginRight: 8 }} />
-                Thanh toán thành công!
+              <div style={{ padding: '12px 0' }}>
+                <div style={{ textAlign: 'center', marginBottom: 16, color: '#86efac' }}>
+                  <CheckCircle2 size={28} />
+                  <p style={{ margin: '8px 0 0', fontWeight: 600 }}>Thanh toán thành công!</p>
+                </div>
+                {apiKey && (
+                  <div style={{ padding: 14, borderRadius: 10, border: '1px solid rgba(134,239,172,.25)', background: 'rgba(134,239,172,0.06)' }}>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>API Key của bạn:</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '10px 12px' }}>
+                      <code style={{ flex: 1, fontSize: '0.8rem', wordBreak: 'break-all', color: 'var(--text-main)' }}>{apiKey}</code>
+                      <button onClick={copyKey} style={{ background: 'none', border: 'none', color: copied ? '#86efac' : 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
+                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                      </button>
+                    </div>
+                    {paidExpiresAt && (
+                      <p style={{ margin: '8px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>Hết hạn: {new Date(paidExpiresAt).toLocaleString('vi-VN')}</p>
+                    )}
+                    <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} onClick={() => onSuccess(order!.order.code)}>
+                      Vào dashboard
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
