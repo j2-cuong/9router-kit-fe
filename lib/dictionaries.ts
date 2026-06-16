@@ -33,6 +33,9 @@ const vi = {
     gemini: { meta: 'Hữu ích khi cần xử lý ngữ cảnh rộng hoặc thử nghiệm nhanh nhiều hướng.' },
     codex: { meta: 'Dùng chung một API key cho các agent và IDE được hỗ trợ.' },
   },
+  usage: { title: 'Telemetry & Usage', text: 'Mỗi request qua key của bạn được ghi lại theo model, độ trễ, prompt tokens và output tokens, giúp bạn biết chính xác chi phí mỗi lần gọi IDE.' },
+  cta: { title: 'Sẵn sàng bắt đầu?', text: 'Chọn gói phù hợp với nhu cầu của bạn. Tất cả gói đều bao gồm quyền truy cập vào tất cả các model được hỗ trợ.', telegram: 'Telegram bot' },
+
   features: {
     endpoint: { title: 'Cấu hình đơn giản', text: 'Bạn chỉ cần một base URL tương thích OpenAI để kết nối các IDE và agent được hỗ trợ.' },
     premium: { title: 'Nhiều model trong một nơi', text: 'Chuyển giữa Claude, GPT, Gemini và các model khác mà không phải quản lý nhiều tài khoản riêng.' },
@@ -216,6 +219,9 @@ const en = {
     gemini: { meta: 'Good for wide context and quick exploration across alternatives.' },
     codex: { meta: 'Use one API key across supported IDEs and developer agents.' },
   },
+  usage: { title: 'Telemetry & Usage', text: 'Every request flowing through your key is tracked by model, latency, prompt tokens and output tokens, so you always know what each IDE call costs.' },
+  cta: { title: 'Ready to get started?', text: 'Pick a plan that suits your workflow. All plans include access to all supported models.', telegram: 'Telegram bot' },
+
   features: {
     endpoint: { title: 'Simple setup', text: 'Use one OpenAI-compatible base URL for supported IDEs and agents.' },
     premium: { title: 'Multiple models in one place', text: 'Switch between Claude, GPT, Gemini and other models without juggling provider accounts.' },
@@ -294,7 +300,18 @@ const en = {
   dashboard: {
     badge: 'Account dashboard', account: 'Account', accountMenu: 'Account menu', welcome: 'Welcome', subtitle: 'Manage your API keys, packages, promotions and profile.', referral: 'Referral code', settings: 'Settings', logout: 'Logout',
     nav: { overview: 'Overview', keys: 'API keys', promos: 'Promotions', leaders: 'Leaderboard' },
-    approvedNotice: 'API key approved', approvedText: 'The key is ready. Copy it from the API key table.', pendingNotice: 'API key pending approval', pendingText: 'Admins have been notified. Once approved, the key will become active.', requestKey: 'Request API key', requestKeyText: 'Choose a system package. Admin approval is required before use.', sending: 'Sending...', requestApproval: 'Request approval', promotion: 'Promotion', promotionText: 'Every 500k VND spent automatically grants 1 extra 3M-token key if that package is active.', waitingApproval: 'Waiting for approval', telegramNotified: 'Admin was notified on Telegram. Key prefix', newKey: 'New key', promoKey: 'Promo key', copy: 'Copy', delete: 'Delete', confirmDelete: 'Delete this key?', summary: 'Account summary', keysTitle: 'API Keys', searchKeys: 'Search API key, package or status', showing: 'Showing', previous: 'Previous', next: 'Next', promosTitle: 'Promotions and referrals', promoKeys: 'Promo keys', referralRewards: 'Referral rewards', referralEarned: 'Earned', referralRedeemed: 'Redeemed', referralAvailable: 'Available', rewardRedemptions: 'Reward redemption history', leaderboard: 'Leaderboard', keys: 'keys', numericId: 'Numeric ID', saving: 'Saving...', saveSettings: 'Save settings',
+    approvedNotice: 'API key approved', approvedText: 'The key is ready. Copy it from the API key table.', pendingNotice: 'API key pending approval', pendingText: 'Admins have been notified. Once approved, the key will become active.', requestKey: 'Request API key', requestKeyText: 'Choose a system package. Admin approval is required before use.',
+    selectPackage: 'Select package',
+    cancel: 'Cancel',
+    noKeys: 'No keys found.',
+    notLoggedIn: 'Not logged in',
+    loginPrompt: 'Please login to view dashboard.',
+    overview: 'Overview',
+    tokenUsage: 'Token usage',
+    timeRemaining: 'Time remaining',
+    devices: 'Devices',
+    requests: 'Requests',
+    keyDetails: 'Key details', sending: 'Sending...', requestApproval: 'Request approval', promotion: 'Promotion', promotionText: 'Every 500k VND spent automatically grants 1 extra 3M-token key if that package is active.', waitingApproval: 'Waiting for approval', telegramNotified: 'Admin was notified on Telegram. Key prefix', newKey: 'New key', promoKey: 'Promo key', copy: 'Copy', delete: 'Delete', confirmDelete: 'Delete this key?', summary: 'Account summary', keysTitle: 'API Keys', searchKeys: 'Search API key, package or status', showing: 'Showing', previous: 'Previous', next: 'Next', promosTitle: 'Promotions and referrals', promoKeys: 'Promo keys', referralRewards: 'Referral rewards', referralEarned: 'Earned', referralRedeemed: 'Redeemed', referralAvailable: 'Available', rewardRedemptions: 'Reward redemption history', leaderboard: 'Leaderboard', keys: 'keys', numericId: 'Numeric ID', saving: 'Saving...', saveSettings: 'Save settings',
     fields: { username: 'Username', email: 'Email', telegram: 'Telegram', referralCode: 'Referral code', keysOwned: 'Keys owned', promotionsReceived: 'Promotions received', referralRewards: 'Referral rewards', telegramUserId: 'Telegram user ID', telegramUsername: 'Telegram username', bankName: 'Bank name', bankAccountName: 'Bank account name', bankAccountNumber: 'Bank account number' },
     table: { key: 'Key', status: 'Status', package: 'Package', price: 'Price', used: 'Used', remain: 'Remain', expires: 'Expires', timeLeft: 'Time left', milestone: 'Milestone', value: 'Value', date: 'Date', user: 'User', note: 'Note', purchased: 'Purchased', totalSpent: 'Total spent', promoValue: 'Promo value', referralValue: 'Referral value' },
     status: { active: 'Active', pending: 'Pending', rejected: 'Rejected', disabled: 'Disabled', revoked: 'Revoked' },

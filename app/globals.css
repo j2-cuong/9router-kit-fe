@@ -129,3 +129,21 @@ canvas#smoke-field {
 }
 
 
+
+/* ── Dark mode background gradient ── */
+html.dark body,
+.dark body {
+  background: radial-gradient(circle at top, #0b1020 0%, #04050a 50%, #03040a 100%);
+}
+
+.shell-grid {
+  background: radial-gradient(circle at 50% 0%, rgba(124,58,237,.16), transparent 32%),
+              radial-gradient(circle at 80% 20%, rgba(126,232,255,.12), transparent 28%),
+              linear-gradient(120deg,#03040a,#070b15 42%,#04050a);
+}
+
+.dark .shell-grid {
+  background: radial-gradient(circle at 50% 0%, rgba(124,58,237,.16), transparent 32%),
+              radial-gradient(circle at 80% 20%, rgba(126,232,255,.12), transparent 28%),
+              linear-gradient(120deg,#03040a,#070b15 42%,#04050a);
+}
