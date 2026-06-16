@@ -213,9 +213,9 @@ export function CheckoutModal({ open, onClose, onSuccess, packageId, apiKeyId, o
             </div>
 
             {(order.bank_account || order.qronly_base64) && (() => {
-              const vietqrSrc = order.bank_account
+              const vietqrSrc = order.qronly_base64 || (order.bank_account
                 ? `https://img.vietqr.io/image/${order.bank_account}-qr_only.png?amount=${Math.round(Number(order.order.amount))}&addInfo=${encodeURIComponent(order.order.code)}`
-                : order.qronly_base64;
+                : '');
               return (
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                   <img src={vietqrSrc} alt="QR Code" style={{ width: 240, height: 240, borderRadius: 10, border: '1px solid rgba(126,232,255,.15)' }} />
