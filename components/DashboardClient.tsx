@@ -721,21 +721,6 @@ function OverviewTab({ session, profile, accountKeys, promotions, referralSummar
         </article>
       )}
 
-      <article className="panel panel-strong">
-        <div style={{ padding: 20, borderBottom: '1px solid rgba(126,232,255,.08)' }}><strong>{t('dashboard.summary')}</strong></div>
-        <div style={{ padding: 20, overflowX: 'auto' }}>
-          <table className="glassy-table dashboard-table">
-            <tbody>
-              <Row label={t('dashboard.fields.username')} value={session.account.username} />
-              <Row label={t('dashboard.fields.email')} value={profile.contact_email || session.account.email || '-'} />
-              <Row label={t('dashboard.fields.telegram')} value={profile.telegram_username || profile.telegram_user_id || '-'} />
-              <Row label={t('dashboard.fields.referralCode')} value={session.account.referral_code} />
-              <Row label={t('dashboard.fields.promotionsReceived')} value={String(promotions.length)} />
-              <Row label={t('dashboard.fields.referralRewards')} value={`${formatVND(referralSummary.available_vnd)} VND`} />
-            </tbody>
-          </table>
-        </div>
-      </article>
     </>
   );
 }
