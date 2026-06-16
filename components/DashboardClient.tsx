@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError, api } from '../lib/api';
-import { Bell, ChevronDown, Clock, Clock3, Coins, Database, Fingerprint, Gift, KeyRound, ListChecks, LogOut, MonitorSmartphone, Receipt, RefreshCcw, Settings, ShieldCheck, SquareActivity, Timer, Trophy, Zap } from 'lucide-react';
+import { Bell, Clock, Clock3, Coins, Database, Fingerprint, Gift, KeyRound, ListChecks, LogOut, MonitorSmartphone, Receipt, RefreshCcw, Settings, ShieldCheck, SquareActivity, Timer, Trophy, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { LangToggle } from './LangToggle';
 import { useI18n } from '../lib/i18n';
@@ -436,7 +436,6 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
   const [busy, setBusy] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [tab, setTab] = useState<'overview' | 'keys' | 'promos' | 'leaders' | 'settings' | 'invoices'>('overview');
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [keyQuery, setKeyQuery] = useState('');
   const [keyPage, setKeyPage] = useState(1);
   const [now, setNow] = useState(() => Date.now());
@@ -499,16 +498,14 @@ function AccountDashboard2({ session, packages, leaderboard, accountKeys, promot
         <div className="account-sidebar-brand"><strong>9router</strong><LangToggle /></div>
         <div className="account-sidebar-profile"><span className="floating-note"><ShieldCheck size={16} /> {t('dashboard.account')}</span><h1>{session.account.username}</h1><p className="muted">{t('dashboard.referral')}: {session.account.referral_code}</p></div>
         <nav className="account-sidebar-nav">{nav.map(([id, label, Icon]) => <button key={id} type="button" className={tab === id ? 'btn btn-primary' : 'btn'} onClick={() => setTab(id)}><Icon size={17} />{label}</button>)}</nav>
-        <div className="avatar-menu-wrap" style={{ marginTop: 'auto', padding: '12px 16px' }}>
-          <button type="button" className="avatar-button" onClick={() => setAccountMenuOpen(v => !v)} aria-label={t('dashboard.accountMenu')}>
+        <div style={{ marginTop: 'auto', padding: '12px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button type="button" className="avatar-button" onClick={() => setTab('settings')} style={{ flex: 1 }}>
             <span className="avatar-circle">{initials}</span>
             <span className="avatar-name">{session.account.username}</span>
-            <ChevronDown size={16} />
           </button>
-          {accountMenuOpen && <div className="avatar-menu panel panel-strong">
-            <button type="button" onClick={() => { setTab('settings'); setAccountMenuOpen(false); }}><Settings size={16} /> {t('dashboard.settings')}</button>
-            <button type="button" onClick={() => { localStorage.removeItem('9router_account_token'); localStorage.removeItem('9router_account_session'); localStorage.removeItem('9router_auth_mode'); location.href = '/login'; }}><LogOut size={16} /> {t('dashboard.logout')}</button>
-          </div>}
+          <button type="button" className="btn" onClick={() => { localStorage.removeItem('9router_account_token'); localStorage.removeItem('9router_account_session'); localStorage.removeItem('9router_auth_mode'); location.href = '/login'; }} style={{ padding: '8px 10px', borderRadius: 12 }}>
+            <LogOut size={18} />
+          </button>
         </div>
       </aside>
       <div className="account-main">
